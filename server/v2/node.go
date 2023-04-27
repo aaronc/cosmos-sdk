@@ -15,12 +15,9 @@ type NodeConfig struct {
 	Name string
 }
 
-func (n *NodeModule) Start(ctx context.Context) error {
-	fmt.Printf("Starting node %s\n", n.config.Name)
-	<-ctx.Done()
-	fmt.Printf("Stopping node %s\n", n.config.Name)
-	return nil
-}
+func (n *NodeModule) IsServerModule() {}
+
+func (n *NodeModule) IsManyPerContainerType() {}
 
 func (n *NodeModule) ServerConfigSection() string {
 	return "node"
@@ -30,9 +27,12 @@ func (n *NodeModule) ServerConfigObject() interface{} {
 	return &n.config
 }
 
-func (n *NodeModule) IsManyPerContainerType() {}
-
-func (n *NodeModule) IsServerModule() {}
+func (n *NodeModule) Start(ctx context.Context) error {
+	fmt.Printf("Starting node %s\n", n.config.Name)
+	<-ctx.Done()
+	fmt.Printf("Stopping node %s\n", n.config.Name)
+	return nil
+}
 
 var _ Module = (*NodeModule)(nil)
 var _ HasConfig = (*NodeModule)(nil)
