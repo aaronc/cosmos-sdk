@@ -3,7 +3,8 @@
 use dashu_int::UBig;
 use cosmossdk_core::{Code, Context, Result};
 use cosmossdk_core::routing::Client;
-use cosmossdk_core::store::StoreClient;
+use cosmossdk_core::store::{StoreClient};
+use cosmossdk_core::sync::{Completer, Completer1, PrepareContext};
 
 pub trait State<'a>: Client<'a> {}
 
@@ -269,6 +270,18 @@ impl<K: KeyCodec> UBigMap<K> {
     }
 
     pub fn add_lazy(&self, ctx: &mut Context, key: K::In<'_>, value: &UBig) {
+        todo!()
+    }
+
+    pub fn prepare_safe_sub(&self, ctx: &PrepareContext, key: K::In<'_>) -> Result<Completer1<&UBig, ()>> {
+        todo!()
+    }
+
+    pub fn prepare_add(&self, ctx: &PrepareContext, key: K::In<'_>) -> Result<Completer1<&UBig, ()>> {
+        todo!()
+    }
+
+    pub fn prepare_add_lazy(&self, ctx: &PrepareContext, key: K::In<'_>) -> Result<Completer1<&UBig, ()>> {
         todo!()
     }
 }

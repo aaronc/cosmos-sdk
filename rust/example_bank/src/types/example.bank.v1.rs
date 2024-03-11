@@ -65,6 +65,44 @@ impl ::prost::Name for QueryBalanceResponse {
         ::prost::alloc::format!("example.bank.v1.{}", Self::NAME)
     }
 }
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct InternalSend {
+    #[prost(bytes = "vec", tag = "1")]
+    pub from: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "2")]
+    pub to: ::prost::alloc::vec::Vec<u8>,
+    #[prost(string, tag = "3")]
+    pub denom: ::prost::alloc::string::String,
+    #[prost(bytes = "vec", tag = "4")]
+    pub amount: ::prost::alloc::vec::Vec<u8>,
+}
+impl ::prost::Name for InternalSend {
+    const NAME: &'static str = "InternalSend";
+    const PACKAGE: &'static str = "example.bank.v1";
+    fn full_name() -> ::prost::alloc::string::String {
+        ::prost::alloc::format!("example.bank.v1.{}", Self::NAME)
+    }
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct InternalSendLazy {
+    #[prost(bytes = "vec", tag = "1")]
+    pub from: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "2")]
+    pub to: ::prost::alloc::vec::Vec<u8>,
+    #[prost(string, tag = "3")]
+    pub denom: ::prost::alloc::string::String,
+    #[prost(bytes = "vec", tag = "4")]
+    pub amount: ::prost::alloc::vec::Vec<u8>,
+}
+impl ::prost::Name for InternalSendLazy {
+    const NAME: &'static str = "InternalSendLazy";
+    const PACKAGE: &'static str = "example.bank.v1";
+    fn full_name() -> ::prost::alloc::string::String {
+        ::prost::alloc::format!("example.bank.v1.{}", Self::NAME)
+    }
+}
 pub struct MsgClient<'a> {
     conn: ::cosmossdk_core::routing::ClientConnection<'a>,
 }

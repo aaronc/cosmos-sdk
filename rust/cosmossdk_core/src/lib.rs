@@ -22,12 +22,12 @@ mod context;
 mod module;
 mod raw;
 mod error;
-mod sync;
+pub mod sync;
 
 pub use code::Code;
 pub use module::{Module};
 pub use context::{Context};
-pub use result::Result;
+pub use result::{Result, ok, err};
 pub use id::{AgentId};
 
 // pub mod cosmos {

@@ -29,3 +29,17 @@ message QueryBalance {
 message QueryBalanceResponse {
   bytes balance = 1;
 }
+
+message InternalSend {
+  bytes from = 1;
+  bytes to = 2;
+  string denom = 3;
+  bytes amount = 4;
+}
+
+message InternalSendLazy {
+  bytes from = 1;
+  bytes to = 2;
+  string denom = 3;
+  bytes amount = 4;
+}

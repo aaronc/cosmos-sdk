@@ -34,8 +34,8 @@ impl TestApp {
     {
     }
 
-    pub fn add_mock_server<'a, T>(&'a mut self, server: &'a T) {
-
+    pub fn add_mock_server<T>(&mut self, server: T) -> &T {
+        todo!()
     }
 
     pub fn test_client(&mut self, identity: AgentId) -> TestClient {
@@ -55,6 +55,10 @@ pub struct TestClient<'a> {
 impl <'a> TestClient<'a> {
     pub fn new<T: Client<'a>>(&mut self) -> T {
         todo!()
+    }
+
+    pub fn identity(&self) -> &AgentId {
+        &self.identity
     }
 
     pub fn context(&self) -> Context {

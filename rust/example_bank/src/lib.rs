@@ -1,8 +1,9 @@
 use dashu_int::UBig;
-use cosmossdk_core::{Code, Context, Module};
+use cosmossdk_core::{Code, Context, err, Module, ok};
 use state_objects::{Index, Map, UBigMap};
-use crate::example::bank::v1::{MsgSend, MsgSendResponse, MsgServer, QueryBalance, QueryBalanceResponse, QueryServer};
+use crate::example::bank::v1::{InternalSendLazy, MsgSend, MsgSendResponse, MsgServer, QueryBalance, QueryBalanceResponse, QueryServer};
 use core::borrow::Borrow;
+use cosmossdk_core::sync::{AsyncInternalHandler, Exec, PrepareContext};
 use cosmossdk_macros::Module;
 use state_objects_macros::State;
 
@@ -59,8 +60,7 @@ impl MsgServer for Bank {
     fn send(&self, ctx: &mut Context, req: &MsgSend) -> ::cosmossdk_core::Result<MsgSendResponse> {
         // checking send enabled uses last block state so no need to synchronize reads
         if !self.state.send_enabled.get_stale(ctx, req.denom.borrow())? {
-            // return ::zeropb::err_msg(Code::Unavailable, "send disabled for denom");
-            todo!()
+            return err!(Code::Unavailable, "send disabled for denom {}", req.denom)
         }
 
         let amount = UBig::from_le_bytes(&req.amount);
@@ -68,7 +68,7 @@ impl MsgServer for Bank {
         self.state.balances.safe_sub(ctx, (req.from.borrow(), req.denom.borrow()), &amount)?;
         self.state.balances.add(ctx, (req.to.borrow(), req.denom.borrow()), &amount)?;
 
-        Ok(MsgSendResponse {})
+        ok()
     }
 }
 
@@ -78,6 +78,19 @@ impl QueryServer for Bank {
             QueryBalanceResponse {
                 balance: balance.to_le_bytes().to_vec(),
             }
+        })
+    }
+}
+
+impl AsyncInternalHandler<InternalSendLazy> for Bank {
+    fn handle(&self, ctx: PrepareContext, req: &InternalSendLazy) -> cosmossdk_core::Result<Exec<()>> {
+        let amount = UBig::from_le_bytes(&req.amount);
+        let safe_sub = self.state.balances.prepare_safe_sub(&ctx, (req.from.borrow(), req.denom.borrow()))?;
+        let add_lazy = self.state.balances.prepare_add_lazy(&ctx, (req.to.borrow(), req.denom.borrow()))?;
+        ctx.exec(move |ctx| {
+            safe_sub(ctx, &amount)?;
+            add_lazy(ctx, &amount)?;
+            Ok(())
         })
     }
 }
@@ -92,17 +105,17 @@ mod tests {
     // use cosmossdk_core::store::{MockStore, Store};
 
     struct Fixture<'a> {
-        app: TestApp,
-        test_store: TestStore,
+        app: Box<TestApp>,
+        test_store: &'a TestStore,
         client: TestClient<'a>,
         bank_client: MsgClient<'a>,
     }
 
     fn fixture() -> Fixture<'static> {
-        let mut mock_store = TestStore::default();
-        let mut app = TestApp::new();
+        // let mut mock_store = TestStore::default();
+        let mut app = Box::new(TestApp::new());
         app.add_module_default::<Bank>("bank");
-        app.add_mock_server(&mock_store);
+        let mock_store = app.add_mock_server(TestStore::default());
         let mut client = app.test_client(AgentId::Account([0; 32].into()));
         let mut bank_client = client.new::<MsgClient>();
         let mut ctx = client.context();
