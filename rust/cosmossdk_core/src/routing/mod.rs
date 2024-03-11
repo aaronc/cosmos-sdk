@@ -21,11 +21,17 @@ pub trait Server: Router {
     // fn route_i2(&self, method_id: u64, ctx: &mut Context, p1: &[u8], p2: &[u8]) -> Result<()> { Err(Unimplemented.into()) }
 }
 
-pub trait ClientConnection: Router {
-    // fn route_id(&self) -> u64 { 0 }
-    // fn route_service_method(&self, method_id: u64, service_name: &str, method: &str, ctx: &mut Context, req: &[u8]) -> Result<RawBytes>;
+pub trait ClientRouter {
+    // fn route_io(&self, method_id: u64, ctx: &mut Context, req: &[u8]) -> Result<RawBytes> { Err(Unimplemented.into()) }
+    // fn route_i1(&self, method_id: u64, ctx: &mut Context, p1: &[u8]) -> Result<()> { Err(Unimplemented.into()) }
+    // fn route_i2(&self, method_id: u64, ctx: &mut Context, p1: &[u8], p2: &[u8]) -> Result<()> { Err(Unimplemented.into()) }
 }
 
-pub trait Client {
-    fn new(route_id: u64, conn: RawBox<dyn ClientConnection>) -> Self;
+pub struct ClientConnection<'a> {
+    router: &'a dyn ClientRouter,
+    route_id: u64,
+}
+
+pub trait Client<'a> {
+    fn new(conn: ClientConnection<'a>) -> Self;
 }

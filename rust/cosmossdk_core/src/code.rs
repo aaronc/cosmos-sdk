@@ -24,3 +24,11 @@ pub enum Code {
     DataLoss = 15,
     Unauthenticated = 16,
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_debug() {
+        assert_eq!(format!("{:?}", super::Code::Ok), "Ok");
+    }
+}

@@ -1,30 +1,35 @@
 extern crate core;
+extern crate alloc;
+use core::ops::FnOnce;
 use core::todo;
-use crate::{Client, ClientConnection, Code, Context, Result, Router, Server};
+use super::{Context, Result, Code};
 use crate::raw::{RawBox, RawBytes};
 use core::result::{Result::{Err, Ok}};
+use core::option::{Option};
+use core::option::Option::{Some, None};
+use crate::id::AgentId;
+use crate::routing::{Client, ClientConnection};
+use alloc::vec::Vec;
 
 #[cfg(feature="alloc")]
 use crate::sync::{Completer, Completer1, PrepareContext};
 
-pub struct StoreClient {
-    conn: RawBox<dyn ClientConnection>,
-    route_id: u64,
+pub struct StoreClient<'a> {
+    conn: ClientConnection<'a>
 }
 
-#[cfg_attr(any(test, feature = "test-util"), mockall::automock)]
-pub trait Store {
-    fn get(&self, ctx: &mut Context, key: &[u8]) -> Result<RawBytes>;
+pub trait StoreServer {
+    fn get(&self, ctx: &mut Context, caller: &AgentId, key: &[u8]) -> Result<Vec<u8>>;
 
-    fn set(&self, ctx: &mut Context, key: &[u8], value: &[u8]) -> Result<()>;
+    fn set(&self, ctx: &mut Context, caller: &AgentId, key: &[u8], value: &[u8]) -> Result<()>;
 
-    fn delete(&self, ctx: &mut Context, key: &[u8]) -> Result<()>;
+    fn delete(&self, ctx: &mut Context, caller: &AgentId, key: &[u8]) -> Result<()>;
 
-    fn has(&self, ctx: &mut Context, key: &[u8]) -> Result<bool>;
+    fn has(&self, ctx: &mut Context, caller: &AgentId, key: &[u8]) -> Result<bool>;
 
-    fn get_stale(&self, ctx: &mut Context, key: &[u8]) -> Result<RawBytes>;
+    fn get_stale(&self, ctx: &mut Context, caller: &AgentId, key: &[u8]) -> Result<Vec<u8>>;
 
-    fn set_lazy(&self, ctx: &mut Context, key: &[u8], value_fn: fn(&[u8]) -> RawBytes) -> Result<()>;
+    fn set_lazy<F: FnOnce(Option<&[u8]>) -> Option<Vec<u8>>>(&self, ctx: &mut Context, caller: &AgentId, key: &[u8], value_fn: F) -> Result<()>;
 
     #[cfg(feature="alloc")]
     fn prepare_get(&self, ctx: &PrepareContext, key: &[u8]) -> Result<Completer<RawBytes>> {
@@ -58,52 +63,53 @@ pub trait Store {
     }
 }
 
-impl Router for dyn Store {
+// impl Router for dyn Store {
+//
+// }
 
-}
+// impl Server for dyn Store {
+//
+// }
 
-impl Server for dyn Store {
-
-}
-
-impl Client for StoreClient {
-    fn new(route_id: u64, conn: RawBox<dyn ClientConnection>) -> Self {
-        StoreClient {
-            conn,
-            route_id,
-        }
+impl <'a> Client<'a> for StoreClient<'a> {
+    fn new(conn: ClientConnection<'a>) -> Self {
+        todo!()
     }
 }
 
-impl StoreClient {
+impl StoreClient<'_> {
     fn get(&self, ctx: &mut Context, key: &[u8]) -> Result<RawBytes> {
-        self.conn.route_io(self.route_id & 0x1, ctx, key)
+        // self.conn.route_io(self.route_id & 0x1, ctx, key)
+        todo!()
     }
 
     fn set(&self, ctx: &mut Context, key: &[u8], value: &[u8]) -> Result<()> {
-        self.conn.route_i2(self.route_id & 0x2, ctx, key, value)
+        // self.conn.route_i2(self.route_id & 0x2, ctx, key, value)
+        todo!()
     }
 
     fn delete(&self, ctx: &mut Context, key: &[u8]) -> Result<()> {
-        self.conn.route_i1(self.route_id & 0x3, ctx, key)
+        // self.conn.route_i1(self.route_id & 0x3, ctx, key)
+        todo!()
     }
 
     fn has(&self, ctx: &mut Context, key: &[u8]) -> Result<bool> {
-        match self.conn.route_io(self.route_id & 0x4, ctx, key) {
-            Ok(_) => Ok(true),
-            Err(e) => {
-                if e.code == Code::NotFound {
-                    Ok(false)
-                } else {
-                    Err(e)
-                }
-            }
-        }
-
+        // match self.conn.route_io(self.route_id & 0x4, ctx, key) {
+        //     Ok(_) => Ok(true),
+        //     Err(e) => {
+        //         if e.code == Code::NotFound {
+        //             Ok(false)
+        //         } else {
+        //             Err(e)
+        //         }
+        //     }
+        // }t
+        todo!()
     }
 
     fn get_stale(&self, ctx: &mut Context, key: &[u8]) -> Result<RawBytes> {
-        self.conn.route_io(self.route_id & 0x5, ctx, key)
+        // self.conn.route_io(self.route_id & 0x5, ctx, key)
+        todo!()
     }
 
     fn set_lazy(&self, ctx: &mut Context, key: &[u8], value_fn: fn(&[u8]) -> RawBytes) -> Result<()> {

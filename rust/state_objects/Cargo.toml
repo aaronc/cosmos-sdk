@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 cosmossdk_core = {path = "../cosmossdk_core"}
 dashu-int = "0.4.1"
+prost = "0.12.3"

@@ -6,12 +6,15 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-zeropb = {path = "../zeropb"}
 cosmossdk_core = {path = "../cosmossdk_core"}
 cosmossdk_macros = {path = "../cosmossdk_macros"}
 state_objects = {path = "../state_objects"}
 state_objects_macros = {path = "../state_objects_macros"}
+prost = "0.12.3"
 dashu-int = "0.4.1"
 
 [dev-dependencies]
 cosmossdk_core = {path = "../cosmossdk_core", features = ["test-util"]}
+
+[build-dependencies]
+cosmos_prost_build = {path = "../cosmos_prost_build"}

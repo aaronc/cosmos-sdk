@@ -1,9 +1,14 @@
 extern crate core;
+extern crate alloc;
+
 use core::borrow::Borrow;
 use core::ops::{Deref, DerefMut, Drop};
 use core::ptr::null;
 use core::default::Default;
 use core::marker::Sized;
+use core::convert::From;
+use alloc::vec::Vec;
+use alloc::alloc::Layout;
 
 pub struct RawBytes {
     bytes: *const u8,
@@ -17,6 +22,22 @@ impl Default for RawBytes {
             bytes: null(),
             len: 0,
             free: |_, _| {},
+        }
+    }
+}
+
+impl From<Vec<u8>> for RawBytes {
+    fn from(bytes: Vec<u8>) -> Self {
+        unsafe {
+            let res = RawBytes {
+                bytes: bytes.as_ptr(),
+                len: bytes.len(),
+                free: |ptr, size| {
+                    alloc::alloc::dealloc(ptr, Layout::from_size_align_unchecked(size, 1));
+                },
+            };
+            core::mem::forget(bytes);
+            res
         }
     }
 }

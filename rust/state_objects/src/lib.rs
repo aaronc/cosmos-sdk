@@ -1,12 +1,11 @@
 // mod async;
 
 use dashu_int::UBig;
-use cosmossdk_core::{Client, Code, Context, Result};
+use cosmossdk_core::{Code, Context, Result};
+use cosmossdk_core::routing::Client;
 use cosmossdk_core::store::StoreClient;
 
-pub trait State: Client {
-
-}
+pub trait State<'a>: Client<'a> {}
 
 pub trait KeyCodec {
     type In<'a>;
@@ -15,11 +14,13 @@ pub trait KeyCodec {
 
     fn encode<B: Writer>(buf: &mut B, key: Self::In<'_>) -> Result<()>;
 
+    fn decode<B: Reader>(buf: &B) -> Result<Self::Out>;
+}
+
+pub trait KeyPartCodec: KeyCodec {
     fn encode_non_terminal<B: Writer>(buf: &mut B, key: Self::In<'_>) -> Result<()> {
         Self::encode(buf, key)
     }
-
-    fn decode<B: Reader>(buf: &B) -> Result<Self::Out>;
 
     fn decode_non_terminal<B: Reader>(buf: &B) -> Result<Self::Out> {
         Self::decode(buf)
@@ -58,15 +59,17 @@ impl KeyCodec for Vec<u8> {
         buf.write(key)
     }
 
+    fn decode<B: Reader>(buf: &B) -> Result<Self::Out> {
+        buf.read_all().map(|x| x.to_vec())
+    }
+}
+
+impl KeyPartCodec for Vec<u8> {
     fn encode_non_terminal<B: Writer>(buf: &mut B, key: Self::In<'_>) -> Result<()> {
         // TODO variant encode length
         let len = key.len() as u16;
         buf.write(&len.to_le_bytes())?;
         buf.write(key)
-    }
-
-    fn decode<B: Reader>(buf: &B) -> Result<Self::Out> {
-        buf.read_all().map(|x| x.to_vec())
     }
 
     fn decode_non_terminal<B: Reader>(buf: &B) -> Result<Self::Out> {
@@ -75,17 +78,34 @@ impl KeyCodec for Vec<u8> {
     }
 }
 
-impl <P1: KeyCodec, P2: KeyCodec> KeyCodec for (P1, P2) {
+impl<P1: KeyPartCodec, P2: KeyPartCodec> KeyCodec for (P1, P2) {
     type In<'a> = (P1::In<'a>, P2::In<'a>);
     type Out = (P1::Out, P2::Out);
     type Keys<'a> = (P1::Keys<'a>, P2::Keys<'a>);
 
     fn encode<B: Writer>(buf: &mut B, key: Self::In<'_>) -> Result<()> {
-        todo!()
+        P1::encode_non_terminal(buf, key.0)?;
+        P2::encode(buf, key.1)
     }
 
     fn decode<B: Reader>(buf: &B) -> Result<Self::Out> {
-        todo!()
+        let p1 = P1::decode_non_terminal(buf)?;
+        let p2 = P2::decode(buf)?;
+        Ok((p1, p2))
+    }
+}
+
+impl<P1: KeyPartCodec, P2: KeyPartCodec> ValueCodec for (P1, P2) {
+    type In<'a> = <(P1, P2) as KeyCodec>::In<'a>;
+    type Out = <(P1, P2) as KeyCodec>::Out;
+    type Keys<'a> = <(P1, P2) as KeyCodec>::Keys<'a>;
+
+    fn encode<B: Writer>(buf: &mut B, key: Self::In<'_>) -> Result<()> {
+        <(P1, P2) as KeyCodec>::encode(buf, key)
+    }
+
+    fn decode<B: Reader>(buf: &B) -> Result<Self::Out> {
+        <(P1, P2) as KeyCodec>::decode(buf)
     }
 }
 
@@ -123,11 +143,13 @@ impl KeyCodec for String {
         todo!()
     }
 
-    fn encode_non_terminal<B: Writer>(buf: &mut B, key: Self::In<'_>) -> Result<()> {
+    fn decode<B: Reader>(buf: &B) -> Result<Self::Out> {
         todo!()
     }
+}
 
-    fn decode<B: Reader>(buf: &B) -> Result<Self::Out> {
+impl KeyPartCodec for String {
+    fn encode_non_terminal<B: Writer>(buf: &mut B, key: Self::In<'_>) -> Result<()> {
         todo!()
     }
 
@@ -172,7 +194,7 @@ pub struct Map<K, V> {
     prefix: Vec<u8>,
 }
 
-impl <K:KeyCodec, V: ValueCodec> Map<K, V> {
+impl<K: KeyCodec, V: ValueCodec> Map<K, V> {
     pub fn new(store: StoreClient, prefix: &[u8], name: String, keys_names: K::Keys<'_>, values_names: &V::Keys<'_>) -> Map<K, V> {
         Self {
             _k: std::marker::PhantomData,
@@ -194,6 +216,7 @@ impl <K:KeyCodec, V: ValueCodec> Map<K, V> {
         todo!()
     }
 }
+
 //
 // struct MyModule {
 //     myMap: Map<CompactU64, u64>
@@ -221,15 +244,15 @@ impl ValueCodec for UBig {
 }
 
 pub struct UBigMap<K> {
-    _k: std::marker::PhantomData<K>
+    _k: std::marker::PhantomData<K>,
 }
 
-impl <K:KeyCodec> UBigMap<K> {
-    pub fn has(&self, ctx: &Context, key: K::In<'_>) ->cosmossdk_core::Result<bool> {
+impl<K: KeyCodec> UBigMap<K> {
+    pub fn has(&self, ctx: &Context, key: K::In<'_>) -> cosmossdk_core::Result<bool> {
         todo!()
     }
 
-    pub fn read(&self, ctx: &Context, key: K::In<'_>) ->cosmossdk_core::Result<UBig> {
+    pub fn read(&self, ctx: &Context, key: K::In<'_>) -> cosmossdk_core::Result<UBig> {
         todo!()
     }
 
@@ -252,5 +275,23 @@ impl <K:KeyCodec> UBigMap<K> {
 
 pub struct Index<K, V> {
     _k: std::marker::PhantomData<K>,
-    _v: std::marker::PhantomData<V>
+    _v: std::marker::PhantomData<V>,
+}
+
+pub struct ProstBinary<T> {
+    _t: std::marker::PhantomData<T>,
+}
+
+impl<T: 'static> ValueCodec for ProstBinary<T> where T: prost::Message + prost::Name {
+    type In<'a> = &'a T;
+    type Out = T;
+    type Keys<'a> = &'a str;
+
+    fn encode<B: Writer>(buf: &mut B, key: Self::In<'_>) -> Result<()> {
+        todo!()
+    }
+
+    fn decode<B: Reader>(buf: &B) -> Result<Self::Out> {
+        todo!()
+    }
 }
