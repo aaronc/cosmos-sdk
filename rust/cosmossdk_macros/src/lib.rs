@@ -1,19 +1,18 @@
 use proc_macro::TokenStream;
 
 use quote::{quote, ToTokens};
-use syn::{DeriveInput, Ident, ItemStruct};
+use syn::{DeriveInput, Expr, Ident, ItemStruct, Path};
 
 #[derive(deluxe::ExtractAttributes)]
 #[deluxe(attributes(module))]
 struct ModuleArgs {
     name: String,
-    services: Vec<Ident>,
+    services: Vec<Path>,
 }
 
 #[proc_macro_derive(Module, attributes(module, services, module_config, module_id))]
 pub fn derive_module(item: TokenStream) -> TokenStream {
     do_derive_module(item.into()).unwrap().into()
-
 }
 
 fn do_derive_module(item: proc_macro2::TokenStream) -> deluxe::Result<proc_macro2::TokenStream> {
@@ -79,6 +78,37 @@ fn do_derive_module(item: proc_macro2::TokenStream) -> deluxe::Result<proc_macro
 //         // }
 //     ).into()
 // }
+
+
+#[proc_macro_derive(AccountHandler, attributes(account_handler))]
+pub fn derive_account_handler(item: TokenStream) -> TokenStream {
+    do_derive_account_handler(item.into()).unwrap().into()
+}
+
+#[derive(deluxe::ExtractAttributes)]
+#[deluxe(attributes(account_handler))]
+struct AccountHandlerArgs {
+    create: Ident,
+    services: Vec<Path>,
+}
+
+fn do_derive_account_handler(item: proc_macro2::TokenStream) -> deluxe::Result<proc_macro2::TokenStream> {
+    let mut input = syn::parse2::<syn::DeriveInput>(item)?;
+    let ident = input.ident.clone();
+    let AccountHandlerArgs { create, services } = deluxe::extract_attributes(&mut input)?;
+
+    Ok(quote!(
+        // impl <'a> cosmossdk_core::account::AccountHandler for #ident<'a> {
+        //     type CreateMessage = #create;
+        // }
+
+        impl <'a> cosmossdk_core::routing::ModuleServiceResolver for #ident<'a> {
+            fn resolve_service_handler(&self, index: u16) -> &dyn cosmossdk_core::routing::ServiceHandler {
+                todo!()
+            }
+        }
+    ))
+}
 
 #[proc_macro_attribute]
 pub fn module_bundle(attr: TokenStream, item: TokenStream) -> TokenStream {

@@ -67,6 +67,7 @@ pub enum CallTarget {
 }
 
 pub enum ClientDescriptor {
+    ServiceClient(String),
     ConcreteClient(CallTarget),
     DynamicProtoClient,
     StoreClient{ordered: bool}

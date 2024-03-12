@@ -40,6 +40,26 @@ impl Borrow<[u8]> for Address {
     }
 }
 
+impl Address {
+    pub fn as_slice(&self) -> &[u8] {
+        &self.data[0..self.len as usize]
+    }
+}
+
+impl Into<Vec<u8>> for Address {
+    fn into(self) -> Vec<u8> {
+        unsafe {
+            Vec::from_raw_parts(self.data.to_vec().as_mut_ptr(), self.len as usize, 256)
+        }
+    }
+}
+
+impl Into<Vec<u8>> for &Address {
+    fn into(self) -> Vec<u8> {
+        self.as_slice().into()
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ModuleId(Address);
 

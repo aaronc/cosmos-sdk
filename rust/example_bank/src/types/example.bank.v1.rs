@@ -122,7 +122,9 @@ impl<'a> ::cosmossdk_core::routing::Client<'a> for MsgClient<'a> {
     fn describe(
         helper: &mut dyn ::cosmossdk_core::routing::ClientDescriptorHelper,
     ) -> ::cosmossdk_core::routing::ClientDescriptor {
-        todo!()
+        ::cosmossdk_core::routing::ClientDescriptor::ServiceClient(
+            "example.bank.v1.Msg".to_string(),
+        )
     }
 }
 impl<'a> ::cosmossdk_core::encoding::prost::ProstClient<'a> for MsgClient<'a> {}
@@ -152,7 +154,9 @@ impl<'a> ::cosmossdk_core::routing::Client<'a> for QueryClient<'a> {
     fn describe(
         helper: &mut dyn ::cosmossdk_core::routing::ClientDescriptorHelper,
     ) -> ::cosmossdk_core::routing::ClientDescriptor {
-        todo!()
+        ::cosmossdk_core::routing::ClientDescriptor::ServiceClient(
+            "example.bank.v1.Query".to_string(),
+        )
     }
 }
 impl<'a> ::cosmossdk_core::encoding::prost::ProstClient<'a> for QueryClient<'a> {}
@@ -162,4 +166,51 @@ pub trait QueryServer {
         ctx: &mut ::cosmossdk_core::Context,
         req: &QueryBalance,
     ) -> ::cosmossdk_core::Result<QueryBalanceResponse>;
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CreateEscrow {
+    #[prost(bytes = "vec", tag = "1")]
+    pub depositor: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "2")]
+    pub recipient: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "3")]
+    pub verifier: ::prost::alloc::vec::Vec<u8>,
+}
+impl ::prost::Name for CreateEscrow {
+    const NAME: &'static str = "CreateEscrow";
+    const PACKAGE: &'static str = "example.bank.v1";
+    fn full_name() -> ::prost::alloc::string::String {
+        ::prost::alloc::format!("example.bank.v1.{}", Self::NAME)
+    }
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RefundEscrow {
+    #[prost(string, tag = "3")]
+    pub denom: ::prost::alloc::string::String,
+    #[prost(bytes = "vec", tag = "4")]
+    pub amount: ::prost::alloc::vec::Vec<u8>,
+}
+impl ::prost::Name for RefundEscrow {
+    const NAME: &'static str = "RefundEscrow";
+    const PACKAGE: &'static str = "example.bank.v1";
+    fn full_name() -> ::prost::alloc::string::String {
+        ::prost::alloc::format!("example.bank.v1.{}", Self::NAME)
+    }
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TransferEscrow {
+    #[prost(string, tag = "3")]
+    pub denom: ::prost::alloc::string::String,
+    #[prost(bytes = "vec", tag = "4")]
+    pub amount: ::prost::alloc::vec::Vec<u8>,
+}
+impl ::prost::Name for TransferEscrow {
+    const NAME: &'static str = "TransferEscrow";
+    const PACKAGE: &'static str = "example.bank.v1";
+    fn full_name() -> ::prost::alloc::string::String {
+        ::prost::alloc::format!("example.bank.v1.{}", Self::NAME)
+    }
 }

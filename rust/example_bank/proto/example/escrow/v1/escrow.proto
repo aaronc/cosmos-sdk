@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package example.bank.v1;
+
+message CreateEscrow {
+  bytes depositor = 1;
+  bytes recipient = 2;
+  bytes verifier = 3;
+}
+
+message RefundEscrow {
+  string denom = 3;
+  bytes amount = 4;
+}
+
+message TransferEscrow {
+  string denom = 3;
+  bytes amount = 4;
+}

@@ -74,6 +74,7 @@ impl ServiceGen {
             })
         }
         let client_name = format_ident!("{}Client", service.name);
+        let service_name = format!("{}.{}", service.package, service.proto_name);
         self.add(quote! {
             pub struct #client_name<'a> {
                 conn: ::cosmossdk_core::routing::ClientConnection<'a>
@@ -89,7 +90,7 @@ impl ServiceGen {
                 }
 
                 fn describe(helper: &mut dyn ::cosmossdk_core::routing::ClientDescriptorHelper) -> ::cosmossdk_core::routing::ClientDescriptor {
-                    todo!()
+                    ::cosmossdk_core::routing::ClientDescriptor::ServiceClient(#service_name.to_string())
                 }
             }
 

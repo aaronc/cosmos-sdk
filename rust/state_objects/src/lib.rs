@@ -1,7 +1,7 @@
 // mod async;
 
 use dashu_int::UBig;
-use cosmossdk_core::{Code, Context, Result};
+use cosmossdk_core::{Address, Code, Context, Result};
 use cosmossdk_core::routing::Client;
 use cosmossdk_core::store::{StoreClient};
 use cosmossdk_core::sync::{Completer, Completer1, PrepareContext};
@@ -52,6 +52,20 @@ pub trait ValueCodec {
 // }
 
 impl KeyCodec for Vec<u8> {
+    type In<'a> = &'a [u8];
+    type Out = Vec<u8>;
+    type Keys<'a> = &'a str;
+
+    fn encode<B: Writer>(buf: &mut B, key: Self::In<'_>) -> Result<()> {
+        buf.write(key)
+    }
+
+    fn decode<B: Reader>(buf: &B) -> Result<Self::Out> {
+        buf.read_all().map(|x| x.to_vec())
+    }
+}
+
+impl ValueCodec for Vec<u8> {
     type In<'a> = &'a [u8];
     type Out = Vec<u8>;
     type Keys<'a> = &'a str;
@@ -308,3 +322,55 @@ impl<T: 'static> ValueCodec for ProstBinary<T> where T: prost::Message + prost::
         todo!()
     }
 }
+
+pub struct Item<T> {
+    _t: std::marker::PhantomData<T>,
+}
+
+impl <T: ValueCodec> Item<T> {
+    pub fn get(&self, ctx: &Context) -> Result<T::Out> {
+        todo!()
+    }
+
+    pub fn set(&self, ctx: &mut Context, value: T::In<'_>) -> Result<()> {
+        todo!()
+    }
+}
+
+// impl KeyCodec for Address {
+//     type In<'a> = &'a Address;
+//     type Out = Address;
+//     type Keys<'a> = &'a str;
+//
+//     fn encode<B: Writer>(buf: &mut B, key: Self::In<'_>) -> Result<()> {
+//         todo!()
+//     }
+//
+//     fn decode<B: Reader>(buf: &B) -> Result<Self::Out> {
+//         todo!()
+//     }
+// }
+//
+// impl KeyPartCodec for Address {
+//     fn encode_non_terminal<B: Writer>(buf: &mut B, key: Self::In<'_>) -> Result<()> {
+//         todo!()
+//     }
+//
+//     fn decode_non_terminal<B: Reader>(buf: &B) -> Result<Self::Out> {
+//         todo!()
+//     }
+// }
+//
+// impl ValueCodec for Address {
+//     type In<'a> = &'a Address;
+//     type Out = Address;
+//     type Keys<'a> = &'a str;
+//
+//     fn encode<B: Writer>(buf: &mut B, key: Self::In<'_>) -> Result<()> {
+//         todo!()
+//     }
+//
+//     fn decode<B: Reader>(buf: &B) -> Result<Self::Out> {
+//         todo!()
+//     }
+// }

@@ -1,7 +1,7 @@
 use crate::module::Module;
 
 pub trait ModuleBundle {
-    fn visit<T: ModuleBundleVisitor>(visitor: &T);
+    fn visit<T: ModuleBundleVisitor>(visitor: &mut T);
 }
 
 pub trait ModuleBundleVisitor {
