@@ -1,17 +1,10 @@
 use crate::Context;
 use crate::id::AgentId;
 use crate::Result;
+use crate::routing::{CallArgs, ServiceHandler};
 
 pub trait Handler<Request, Response = ()> {
     fn handle(&self, ctx: &mut Context, req: &Request) -> Result<Response>;
-}
-
-pub trait InternalHandler<Request, Response = ()> {
-    fn handle(&self, ctx: &mut Context, req: &Request) -> Result<Response>;
-}
-
-pub trait EventHook<Event> {
-    fn on_event(&self, ctx: &mut Context, event: &Event) -> Result<()>;
 }
 
 pub trait PreHandler<Request> {
@@ -21,3 +14,8 @@ pub trait PreHandler<Request> {
 pub trait PostHandler<Request, Response = ()> {
     fn post_handle(&self, ctx: &mut Context, req: &Request, res: &mut Response) -> Result<()>;
 }
+
+pub trait EventHook<Event> {
+    fn on_event(&self, ctx: &mut Context, event: &Event) -> Result<()>;
+}
+

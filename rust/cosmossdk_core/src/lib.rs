@@ -21,9 +21,10 @@ mod handler;
 mod result;
 mod context;
 mod module;
-mod raw;
 pub mod error;
 pub mod sync;
+mod encoding;
+mod client;
 
 pub use code::Code;
 pub use module::{Module};

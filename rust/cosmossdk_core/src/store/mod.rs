@@ -3,7 +3,6 @@ extern crate alloc;
 use core::ops::FnOnce;
 use core::todo;
 use super::{Context, Result, Code};
-use crate::raw::{RawBox, RawBytes};
 use core::result::{Result::{Err, Ok}};
 use core::option::{Option};
 use core::option::Option::{Some, None};
@@ -32,12 +31,12 @@ pub trait StoreServer {
     fn set_lazy<F: FnOnce(Option<&[u8]>) -> Option<Vec<u8>>>(&self, ctx: &mut Context, caller: &AgentId, key: &[u8], value_fn: F) -> Result<()>;
 
     #[cfg(feature="alloc")]
-    fn prepare_get(&self, ctx: &PrepareContext, key: &[u8]) -> Result<Completer<RawBytes>> {
+    fn prepare_get(&self, ctx: &PrepareContext, key: &[u8]) -> Result<Completer<Vec<u8>>> {
         Ok(alloc::boxed::Box::new(move |ctx| self.get(ctx, key)))
     }
 
     #[cfg(feature="alloc")]
-    fn prepare_set(&self, ctx: &PrepareContext, key: &[u8]) -> Result<Completer1<RawBytes, ()>> {
+    fn prepare_set(&self, ctx: &PrepareContext, key: &[u8]) -> Result<Completer1<Vec<u8>, ()>> {
         Ok(alloc::boxed::Box::new(move |ctx, value| self.set(ctx, key, value)))
     }
 
@@ -52,12 +51,12 @@ pub trait StoreServer {
     }
 
     #[cfg(feature="alloc")]
-    fn prepare_get_stale(&self, ctx: &PrepareContext, key: &[u8]) -> Result<Completer<RawBytes>> {
+    fn prepare_get_stale(&self, ctx: &PrepareContext, key: &[u8]) -> Result<Completer<Vec<u8>>> {
         Ok(alloc::boxed::Box::new(move |ctx| self.get_stale(ctx, key)))
     }
 
     #[cfg(feature="alloc")]
-    fn prepare_set_lazy(&self, ctx: &PrepareContext, key: &[u8]) -> Result<Completer1<fn(&[u8]) -> RawBytes, ()>> {
+    fn prepare_set_lazy(&self, ctx: &PrepareContext, key: &[u8]) -> Result<Completer1<fn(&[u8]) -> Vec<u8>, ()>> {
         Ok(alloc::boxed::Box::new(move |ctx, value_fn| self.set_lazy(ctx, key, value_fn)))
 
     }
@@ -78,7 +77,7 @@ impl <'a> Client<'a> for StoreClient<'a> {
 }
 
 impl StoreClient<'_> {
-    fn get(&self, ctx: &mut Context, key: &[u8]) -> Result<RawBytes> {
+    fn get(&self, ctx: &mut Context, key: &[u8]) -> Result<Vec<u8>> {
         // self.conn.route_io(self.route_id & 0x1, ctx, key)
         todo!()
     }
@@ -107,12 +106,12 @@ impl StoreClient<'_> {
         todo!()
     }
 
-    fn get_stale(&self, ctx: &mut Context, key: &[u8]) -> Result<RawBytes> {
+    fn get_stale(&self, ctx: &mut Context, key: &[u8]) -> Result<Vec<u8>> {
         // self.conn.route_io(self.route_id & 0x5, ctx, key)
         todo!()
     }
 
-    fn set_lazy(&self, ctx: &mut Context, key: &[u8], value_fn: fn(&[u8]) -> RawBytes) -> Result<()> {
+    fn set_lazy(&self, ctx: &mut Context, key: &[u8], value_fn: fn(&[u8]) -> Vec<u8>) -> Result<()> {
         // self.conn.route_i2(self.route_id & 0x6, ctx, key, value_fn(key))
         todo!()
     }

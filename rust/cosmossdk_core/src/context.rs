@@ -1,23 +1,13 @@
 use crate::AgentId;
-use crate::raw::BytesPtr;
 
 #[repr(C)]
 pub struct Context {
-    id: u64,
-    route_info: RouteInfo,
     source: AgentId,
     target: AgentId,
-    in1: BytesPtr,
-    in2: BytesPtr,
-    out1: BytesPtr,
-    out2: BytesPtr,
+    _padding: [u8; 508], // extra space for future use and makes context 1024 bytes
 }
 
 impl Context {
-    pub fn id(&self) -> u64 {
-        self.id
-    }
-
     /// Returns the account or module which invoked the call.
     /// In the case of messages which include the signer in the
     /// message, this will always be equal to binary encoding of the
@@ -36,11 +26,4 @@ impl Context {
     pub fn self_id(&self) -> &AgentId {
         &self.target
     }
-}
-
-#[repr(C)]
-pub(crate) struct RouteInfo {
-    module_index: u32,
-    service_index: u16,
-    method_index: u16,
 }

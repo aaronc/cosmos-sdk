@@ -21,13 +21,13 @@ impl Default for Address {
 
 impl Address {
     fn new(s: &[u8]) -> crate::Result<Self> {
-        let len = s.len() as u8;
+        let len = s.len();
         if len > 256 {
             return Err(crate::Error::InvalidAddress);
         }
         let mut data = [0; 256];
-        data[0..len as usize].copy_from_slice(s);
-        Ok(Address { len, data })
+        data[0..len].copy_from_slice(s);
+        Ok(Address { len: len as u8, data })
     }
 }
 
@@ -38,6 +38,12 @@ impl Borrow<[u8]> for Address {
 }
 
 pub struct ModuleId(Address);
+
+impl ModuleId {
+    pub fn new(id: &str) -> crate::Result<Self> {
+        Ok(ModuleId(Address::new(id.as_bytes())?))
+    }
+}
 
 impl Borrow<str> for ModuleId {
     fn borrow(&self) -> &str {
