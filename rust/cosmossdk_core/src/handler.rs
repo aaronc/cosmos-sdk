@@ -7,7 +7,7 @@ pub trait Handler<Request, Response = ()> {
 }
 
 pub trait InternalHandler<Request, Response = ()> {
-    fn handle(&self, ctx: &mut Context, caller_id: &AgentId, req: &Request) -> Result<Response>;
+    fn handle(&self, ctx: &mut Context, req: &Request) -> Result<Response>;
 }
 
 pub trait EventHook<Event> {

@@ -1,9 +1,46 @@
-extern crate alloc;
-use alloc::string::String;
-use alloc::vec::Vec;
+use core::borrow::Borrow;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[repr(u8)]
 pub enum AgentId {
-    Module(String),
-    Account(Vec<u8>)
+    Module(ModuleId),
+    Account(Address),
+}
+
+#[repr(C)]
+pub struct Address {
+    len: u8,
+    data: [u8; 256],
+}
+
+impl Default for Address {
+    fn default() -> Self {
+        Address { len: 0, data: [0; 256] }
+    }
+}
+
+impl Address {
+    fn new(s: &[u8]) -> crate::Result<Self> {
+        let len = s.len() as u8;
+        if len > 256 {
+            return Err(crate::Error::InvalidAddress);
+        }
+        let mut data = [0; 256];
+        data[0..len as usize].copy_from_slice(s);
+        Ok(Address { len, data })
+    }
+}
+
+impl Borrow<[u8]> for Address {
+    fn borrow(&self) -> &[u8] {
+        &self.data[0..self.len as usize]
+    }
+}
+
+pub struct ModuleId(Address);
+
+impl Borrow<str> for ModuleId {
+    fn borrow(&self) -> &str {
+        unsafe { core::str::from_utf8_unchecked(self.0.borrow()) }
+    }
 }

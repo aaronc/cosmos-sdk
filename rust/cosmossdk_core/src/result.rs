@@ -9,19 +9,15 @@ pub fn ok<T:Default>() -> Result<T> {
     Ok(Default::default())
 }
 
-pub fn err<T>(code: Code, msg: String) -> Result<T> {
-    Err(Error(code, msg))
-}
-
 #[macro_export]
 macro_rules! err {
     ($code:expr) => {
-        crate::err($code, "".to_string())
+        core::result::Result::Err(crate::error::Error($code, "".to_string()))
     };
     ($code:expr, $msg:expr) => {
-        crate::err($code, $msg.to_string())
+        core::result::Result::Err(crate::error::Error($code, $msg.to_string()))
     };
     ($code:expr, $msg:expr, $($args:expr),*) => {
-        crate::err($code, format!($msg, $($args),*))
+        core::result::Result::Err(crate::error::Error($code, format!($msg, $($args),*)))
     };
 }

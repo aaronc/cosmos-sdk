@@ -81,3 +81,9 @@ impl<T: ?Sized> Borrow<T> for RawBox<T> {
         unsafe { &*self.t }
     }
 }
+
+#[repr(C)]
+pub(crate) struct BytesPtr {
+    len: usize,
+    ptr: *mut u8,
+}

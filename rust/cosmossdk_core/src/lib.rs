@@ -4,6 +4,7 @@
 
 #[cfg(feature="alloc")]
 extern crate alloc;
+extern crate core;
 
 #[cfg(target_arch = "wasm32")]
 mod wasm;
@@ -21,13 +22,13 @@ mod result;
 mod context;
 mod module;
 mod raw;
-mod error;
+pub mod error;
 pub mod sync;
 
 pub use code::Code;
 pub use module::{Module};
 pub use context::{Context};
-pub use result::{Result, ok, err};
+pub use result::{Result, ok};
 pub use id::{AgentId};
 
 // pub mod cosmos {
