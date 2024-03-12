@@ -7,7 +7,7 @@ use core::result::{Result::{Err, Ok}};
 use core::option::{Option};
 use core::option::Option::{Some, None};
 use crate::id::AgentId;
-use crate::routing::{Client, ClientConnection};
+use crate::routing::{Client, ClientConnection, ClientDescriptor, ClientDescriptorHelper};
 use alloc::vec::Vec;
 
 #[cfg(feature="alloc")]
@@ -71,6 +71,10 @@ pub trait StoreServer {
 // }
 
 impl <'a> Client<'a> for StoreClient<'a> {
+    fn describe(helper: &mut dyn ClientDescriptorHelper) -> ClientDescriptor {
+        ClientDescriptor::StoreClient{ordered: false}
+    }
+
     fn new(conn: ClientConnection<'a>) -> Self {
         todo!()
     }

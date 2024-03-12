@@ -27,12 +27,12 @@ impl std::error::Error for Error {}
 #[macro_export]
 macro_rules! error {
     ($code:expr) => {
-        crate::Error($code, "".to_string())
+        crate::error::Error($code, "".to_string())
     };
     ($code:expr, $msg:expr) => {
-        crate::Error($code, $msg.to_string())
+        crate::error::Error($code, $msg.to_string())
     };
     ($code:expr, $msg:expr, $($args:expr),*) => {
-        crate::Error($code, format!($msg, $($args),*))
+        crate::error::Error($code, format!($msg, $($args),*))
     };
 }

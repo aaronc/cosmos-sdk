@@ -20,11 +20,12 @@ mod id;
 mod handler;
 mod result;
 mod context;
-mod module;
+pub mod module;
 pub mod error;
 pub mod sync;
 mod encoding;
-mod client;
+mod account;
+mod interface;
 
 pub use code::Code;
 pub use module::{Module};

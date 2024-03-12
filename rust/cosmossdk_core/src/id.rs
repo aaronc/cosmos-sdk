@@ -1,4 +1,6 @@
 use core::borrow::Borrow;
+use crate::{Code, err};
+use crate::error::Error;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[repr(u8)]
@@ -7,6 +9,7 @@ pub enum AgentId {
     Account(Address),
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 #[repr(C)]
 pub struct Address {
     len: u8,
@@ -23,7 +26,7 @@ impl Address {
     fn new(s: &[u8]) -> crate::Result<Self> {
         let len = s.len();
         if len > 256 {
-            return Err(crate::Error::InvalidAddress);
+            return err!(Code::InvalidArgument, "address can be at most 256 bytes, received {} byte", len);
         }
         let mut data = [0; 256];
         data[0..len].copy_from_slice(s);
@@ -37,6 +40,7 @@ impl Borrow<[u8]> for Address {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ModuleId(Address);
 
 impl ModuleId {

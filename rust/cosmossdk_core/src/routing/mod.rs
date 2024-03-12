@@ -1,3 +1,8 @@
+mod direct;
+mod dynamic_router;
+mod app_router;
+mod bundle;
+
 extern crate core;
 
 use crate::{AgentId, Context, Result};
@@ -21,21 +26,28 @@ pub trait ServiceDescriptorHelper {}
 // fn route_i2(&self, method_id: u64, ctx: &mut Context, p1: &[u8], p2: &[u8]) -> Result<()> { Err(Unimplemented.into()) }
 // }
 
-pub trait ClientRouter {
+pub trait Router {
     fn invoke(&self, call_data: &mut CallData) -> Result<()>;
 }
 
-pub trait ClientFactory {
-    fn new<T: Client>(&self) -> T;
+pub trait ClientFactory<'a> {
+    fn new<T: Client<'a>>(&self) -> T;
 }
 
 pub struct ClientConnection<'a> {
-    router: &'a dyn ClientRouter,
+    router: &'a dyn Router,
     default_route_info: RouteInfo,
 }
 
-impl ClientConnection<'_> {
-    fn invoke(&self, ctx: &Context, args: &mut ClientCallArgs) -> Result<()> {
+impl <'a> ClientConnection<'a> {
+    pub fn new(router: &'a dyn Router, default_route_info: RouteInfo) -> Self {
+        ClientConnection {
+            router,
+            default_route_info,
+        }
+    }
+
+    pub fn invoke(&self, ctx: &Context, args: &mut ClientCallArgs) -> Result<()> {
         args.0.route_info = self.default_route_info.clone();
         args.0.context.id = ctx.id;
         args.0.context.source = ctx.target.clone();
@@ -58,6 +70,7 @@ pub enum CallTarget {
 pub enum ClientDescriptor {
     ConcreteClient(CallTarget),
     DynamicProtoClient,
+    StoreClient{ordered: bool}
 }
 
 pub trait ClientDescriptorHelper {}
@@ -133,6 +146,7 @@ impl CallArgs {
 #[repr(C)]
 #[derive(Clone)]
 enum RouteInfo {
+    Empty,
     Local(LocalRouteInfo),
     ClientToken(u128),
     ClientTarget(CallTarget),
@@ -141,13 +155,18 @@ enum RouteInfo {
 #[repr(C)]
 #[derive(Clone)]
 struct LocalRouteInfo {
-    module_index: u32,
-    service_index: u16,
-    method_index: u16,
+    module_index: rend::u32_le,
+    service_index: rend::u16_le,
+    method_index: rend::u16_le,
 }
 
 #[repr(C)]
 struct BytesPtr {
-    len: usize,
-    ptr: *mut u8,
+    len: usize, // TODO rend::u32_le
+    ptr: *mut u8, // TODO rend::u64_le
 }
+
+pub trait ModuleServiceResolver {
+    fn resolve_service_handler(&self, index: u16) -> &dyn ServiceHandler;
+}
+
