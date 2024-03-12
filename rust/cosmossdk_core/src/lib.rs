@@ -23,12 +23,12 @@ mod context;
 pub mod module;
 pub mod error;
 pub mod sync;
-mod encoding;
+pub mod bundle;
+pub mod encoding;
 mod account;
 mod interface;
 
 pub use code::Code;
-pub use module::{Module};
 pub use context::{Context};
 pub use result::{Result, ok};
 pub use id::{AgentId};
@@ -42,3 +42,4 @@ pub use id::{AgentId};
 //         }
 //     }
 // }
+

@@ -10,10 +10,8 @@ pub trait Module: ModuleServiceResolver {
     fn new<'a, F: ClientFactory<'a>>(config_bytes: &[u8], client_factory: &'a F) -> Self;
 }
 
-pub enum ModuleDescriptor {
-    Module(String),
-    AccountHandler(String),
-    InterfaceImpl(String)
+pub struct ModuleDescriptor {
+    pub config_type_name: String,
 }
 
 pub trait DescribeModule {

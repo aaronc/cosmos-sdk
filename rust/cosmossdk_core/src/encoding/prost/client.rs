@@ -19,7 +19,7 @@ impl<'a> Client<'a> for DynamicProstClient<'a> {
         ClientDescriptor::DynamicProtoClient
     }
 
-    fn new(conn: ClientConnection) -> Self {
+    fn new(conn: ClientConnection<'a>) -> Self {
         DynamicProstClient {
             conn
         }
@@ -27,4 +27,4 @@ impl<'a> Client<'a> for DynamicProstClient<'a> {
 }
 
 // This is a marker trait for generated code that is a prost client.
-trait ProstClient<'a>: Client<'a> {}
+pub trait ProstClient<'a>: Client<'a> {}

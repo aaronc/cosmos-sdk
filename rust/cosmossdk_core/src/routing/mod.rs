@@ -1,7 +1,6 @@
 mod direct;
 mod dynamic_router;
 mod app_router;
-mod bundle;
 
 extern crate core;
 
@@ -31,7 +30,7 @@ pub trait Router {
 }
 
 pub trait ClientFactory<'a> {
-    fn new<T: Client<'a>>(&self) -> T;
+    fn new<T: Client<'a>>(&'a self) -> T;
 }
 
 pub struct ClientConnection<'a> {

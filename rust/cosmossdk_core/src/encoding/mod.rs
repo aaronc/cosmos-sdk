@@ -1,1 +1,1 @@
-mod prost;
+pub mod prost;

@@ -1,6 +1,6 @@
-use crate::Module;
+use crate::bundle::ModuleBundleVisitor;
+use crate::module::Module;
 use crate::routing::{CallData, Client, ClientConnection, ClientFactory, ModuleServiceResolver, RouteInfo, Router};
-use crate::routing::bundle::ModuleBundleVisitor;
 
 /// A router that only routes directly to services based on local routing info and
 /// delegates all client calls to a remote client.
@@ -16,7 +16,7 @@ impl Router for DirectRouter<'_> {
 }
 
 impl <'a> ClientFactory<'a> for DirectRouter<'a> {
-    fn new<T: Client<'a>>(&self) -> T {
+    fn new<T: Client<'a>>(&'a self) -> T {
         T::new(ClientConnection::new(self, RouteInfo::Empty))
     }
 }

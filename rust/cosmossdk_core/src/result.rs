@@ -12,12 +12,12 @@ pub fn ok<T:Default>() -> Result<T> {
 #[macro_export]
 macro_rules! err {
     ($code:expr) => {
-        core::result::Result::Err(crate::error::Error($code, "".to_string()))
+        core::result::Result::Err($crate::error::Error($code, "".to_string()))
     };
     ($code:expr, $msg:expr) => {
-        core::result::Result::Err(crate::error::Error($code, $msg.to_string()))
+        core::result::Result::Err($crate::error::Error($code, $msg.to_string()))
     };
     ($code:expr, $msg:expr, $($args:expr),*) => {
-        core::result::Result::Err(crate::error::Error($code, format!($msg, $($args),*)))
+        core::result::Result::Err($crate::error::Error($code, format!($msg, $($args),*)))
     };
 }

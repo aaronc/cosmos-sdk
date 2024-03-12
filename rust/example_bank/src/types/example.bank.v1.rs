@@ -119,7 +119,13 @@ impl<'a> ::cosmossdk_core::routing::Client<'a> for MsgClient<'a> {
     fn new(conn: ::cosmossdk_core::routing::ClientConnection<'a>) -> Self {
         Self { conn }
     }
+    fn describe(
+        helper: &mut dyn ::cosmossdk_core::routing::ClientDescriptorHelper,
+    ) -> ::cosmossdk_core::routing::ClientDescriptor {
+        todo!()
+    }
 }
+impl<'a> ::cosmossdk_core::encoding::prost::ProstClient<'a> for MsgClient<'a> {}
 pub trait MsgServer {
     fn send(
         &self,
@@ -143,7 +149,13 @@ impl<'a> ::cosmossdk_core::routing::Client<'a> for QueryClient<'a> {
     fn new(conn: ::cosmossdk_core::routing::ClientConnection<'a>) -> Self {
         Self { conn }
     }
+    fn describe(
+        helper: &mut dyn ::cosmossdk_core::routing::ClientDescriptorHelper,
+    ) -> ::cosmossdk_core::routing::ClientDescriptor {
+        todo!()
+    }
 }
+impl<'a> ::cosmossdk_core::encoding::prost::ProstClient<'a> for QueryClient<'a> {}
 pub trait QueryServer {
     fn balance(
         &self,

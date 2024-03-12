@@ -87,7 +87,13 @@ impl ServiceGen {
                 fn new(conn: ::cosmossdk_core::routing::ClientConnection<'a>) -> Self {
                     Self { conn }
                 }
+
+                fn describe(helper: &mut dyn ::cosmossdk_core::routing::ClientDescriptorHelper) -> ::cosmossdk_core::routing::ClientDescriptor {
+                    todo!()
+                }
             }
+
+            impl <'a> ::cosmossdk_core::encoding::prost::ProstClient<'a> for #client_name<'a> {}
         })
     }
 

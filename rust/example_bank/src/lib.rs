@@ -1,5 +1,6 @@
 use dashu_int::UBig;
-use cosmossdk_core::{Code, Context, err, Module, ok};
+use cosmossdk_core::{Code, Context, ok, err};
+use cosmossdk_core::module::Module;
 use state_objects::{Index, Map, UBigMap};
 use crate::example::bank::v1::{InternalSendLazy, MsgSend, MsgSendResponse, MsgServer, QueryBalance, QueryBalanceResponse, QueryServer};
 use core::borrow::Borrow;
@@ -11,7 +12,9 @@ include!("types/_includes.rs");
 static FILE_DESCRIPTOR_BYTES: &[u8] = include_bytes!("types/file_descriptor_set.bin");
 
 #[derive(Module)]
-#[services(MsgServer, QueryServer)]
+#[module(name="example.bank.v1.BankModule",
+         services(MsgServer, QueryServer)
+)]
 pub struct Bank {
     state: BankState,
 

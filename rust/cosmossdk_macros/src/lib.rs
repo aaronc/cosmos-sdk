@@ -3,21 +3,43 @@ use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{DeriveInput, Ident, ItemStruct};
 
-#[derive(Debug, deluxe::ParseMetaItem)]
-struct ModuleMacroArgs {
+#[derive(deluxe::ExtractAttributes)]
+#[deluxe(attributes(module))]
+struct ModuleArgs {
     name: String,
     services: Vec<Ident>,
 }
 
-#[proc_macro_derive(Module, attributes(services, module_config, module_id))]
-pub fn derive_module(input: TokenStream) -> TokenStream {
-    let DeriveInput{ident, ..} = syn::parse_macro_input!(input);
-    quote!(
-        impl Module for #ident {
-            type Config = ();
+#[proc_macro_derive(Module, attributes(module, services, module_config, module_id))]
+pub fn derive_module(item: TokenStream) -> TokenStream {
+    do_derive_module(item.into()).unwrap().into()
 
+}
+
+fn do_derive_module(item: proc_macro2::TokenStream) -> deluxe::Result<proc_macro2::TokenStream> {
+    let mut input = syn::parse2::<syn::DeriveInput>(item)?;
+    let ident = input.ident.clone();
+    let ModuleArgs { name, services } = deluxe::extract_attributes(&mut input)?;
+
+    Ok(quote!(
+        impl cosmossdk_core::module::Module for #ident {
+            fn describe<T: cosmossdk_core::module::DescribeModule>(describe: &mut T) -> cosmossdk_core::module::ModuleDescriptor {
+                cosmossdk_core::module::ModuleDescriptor {
+                    config_type_name: #name.to_string(),
+                }
+            }
+
+            fn new<'a, F: cosmossdk_core::routing::ClientFactory<'a>>(config_bytes: &[u8], client_factory: &'a F) -> Self {
+                todo!()
+            }
         }
-    ).into()
+
+        impl cosmossdk_core::routing::ModuleServiceResolver for #ident {
+            fn resolve_service_handler(&self, index: u16) -> &dyn cosmossdk_core::routing::ServiceHandler {
+                todo!()
+            }
+        }
+    ))
 }
 
 // #[proc_macro_attribute]
