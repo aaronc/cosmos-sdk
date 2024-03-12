@@ -2,12 +2,19 @@ use crate::AgentId;
 
 #[repr(C)]
 pub struct Context {
-    source: AgentId,
-    target: AgentId,
+    pub(crate) id: u64,
+    pub(crate) source: AgentId,
+    pub(crate) target: AgentId,
     _padding: [u8; 508], // extra space for future use and makes context 1024 bytes
 }
 
 impl Context {
+    /// Returns the unique identifier for the call that is scoped at the app level
+    /// as either a user initiated transaction or an application lifecycle callback.
+    fn id(&self) -> u64 {
+        self.id
+    }
+
     /// Returns the account or module which invoked the call.
     /// In the case of messages which include the signer in the
     /// message, this will always be equal to binary encoding of the

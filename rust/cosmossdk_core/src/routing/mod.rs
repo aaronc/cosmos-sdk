@@ -1,6 +1,7 @@
 extern crate core;
 
-use crate::{Context, Result};
+use crate::{AgentId, Context, Result};
+use crate::id::Address;
 
 // alternate designs
 pub trait ServiceHandler {
@@ -11,8 +12,7 @@ pub trait Service: ServiceHandler {
     fn describe(helper: &mut dyn ServiceDescriptorHelper) -> ServiceDescriptor;
 }
 
-pub trait ServiceDescriptorHelper {
-}
+pub trait ServiceDescriptorHelper {}
 
 // pub trait Server: ServiceHandler {
 // fn describe(descriptor: &mut crate::types::cosmos::core::v1alpha1::bundle::ModuleOutput) -> zeropb::Result<()>;
@@ -22,9 +22,7 @@ pub trait ServiceDescriptorHelper {
 // }
 
 pub trait ClientRouter {
-    // fn route_io(&self, method_id: u64, ctx: &mut Context, req: &[u8]) -> Result<RawBytes> { Err(Unimplemented.into()) }
-    // fn route_i1(&self, method_id: u64, ctx: &mut Context, p1: &[u8]) -> Result<()> { Err(Unimplemented.into()) }
-    // fn route_i2(&self, method_id: u64, ctx: &mut Context, p1: &[u8], p2: &[u8]) -> Result<()> { Err(Unimplemented.into()) }
+    fn invoke(&self, call_data: &mut CallData) -> Result<()>;
 }
 
 pub trait ClientFactory {
@@ -33,12 +31,15 @@ pub trait ClientFactory {
 
 pub struct ClientConnection<'a> {
     router: &'a dyn ClientRouter,
-    route_token: u128,
+    default_route_info: RouteInfo,
 }
 
 impl ClientConnection<'_> {
-    fn invoke(&self, ctx: &Context, target: CallTarget, args: &mut CallArgs) -> Result<()> {
-        todo!()
+    fn invoke(&self, ctx: &Context, args: &mut ClientCallArgs) -> Result<()> {
+        args.0.route_info = self.default_route_info.clone();
+        args.0.context.id = ctx.id;
+        args.0.context.source = ctx.target.clone();
+        self.router.invoke(&mut args.0)
     }
 }
 
@@ -47,12 +48,16 @@ pub trait Client<'a> {
     fn new(conn: ClientConnection<'a>) -> Self;
 }
 
+#[derive(Clone)]
 pub enum CallTarget {
-
+    ProtoMessage(String),
+    ProtoMethod(String),
+    StoreMethod(String),
 }
 
 pub enum ClientDescriptor {
-    DynamicProtoClient
+    ConcreteClient(CallTarget),
+    DynamicProtoClient,
 }
 
 pub trait ClientDescriptorHelper {}
@@ -77,6 +82,18 @@ struct CallData {
     context: Context,
     data: CallArgs,
     route_info: RouteInfo,
+}
+
+pub struct ClientCallArgs(CallData);
+
+impl ClientCallArgs {
+    pub fn set_target_address(&mut self, address: Address) {
+        self.0.context.target = AgentId::Account(address);
+    }
+
+    pub fn set_dynamic_route_target(&mut self, target: CallTarget) {
+        self.0.route_info = RouteInfo::ClientTarget(target);
+    }
 }
 
 #[repr(C)]
@@ -114,7 +131,16 @@ impl CallArgs {
 }
 
 #[repr(C)]
-struct RouteInfo {
+#[derive(Clone)]
+enum RouteInfo {
+    Local(LocalRouteInfo),
+    ClientToken(u128),
+    ClientTarget(CallTarget),
+}
+
+#[repr(C)]
+#[derive(Clone)]
+struct LocalRouteInfo {
     module_index: u32,
     service_index: u16,
     method_index: u16,
