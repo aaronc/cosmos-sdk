@@ -36,9 +36,19 @@ pub struct ClientConnection<'a> {
     route_token: u128,
 }
 
+impl ClientConnection<'_> {
+    fn invoke(&self, ctx: &Context, target: CallTarget, args: &mut CallArgs) -> Result<()> {
+        todo!()
+    }
+}
+
 pub trait Client<'a> {
     fn describe(helper: &mut dyn ClientDescriptorHelper) -> ClientDescriptor;
     fn new(conn: ClientConnection<'a>) -> Self;
+}
+
+pub enum CallTarget {
+
 }
 
 pub enum ClientDescriptor {
@@ -65,8 +75,8 @@ pub enum ServiceType {
 #[repr(C)]
 struct CallData {
     context: Context,
-    route_info: RouteInfo,
     data: CallArgs,
+    route_info: RouteInfo,
 }
 
 #[repr(C)]
