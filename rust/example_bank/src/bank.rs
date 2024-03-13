@@ -25,22 +25,22 @@ pub struct Bank {
 #[derive(State)]
 pub struct BankState {
     #[map(prefix = 1, key(denom), value(enabled))]
-    send_enabled: Map<String, bool>,
+    send_enabled: Map<str, bool>,
 
     #[map(prefix = 2, key(address, denom), value(balance))]
-    balances: UBigMap<(Vec<u8>, String)>,
+    balances: UBigMap<([u8], str)>,
 
     #[map(prefix = 3, key(module, denom), value(balance))]
-    module_balances: UBigMap<(String, String)>,
+    module_balances: UBigMap<(str, str)>,
 
     #[map(prefix = 4, key(denom), value(supply))]
-    supplies: UBigMap<String>,
+    supplies: UBigMap<str>,
 
     #[index(prefix = 5, on(balances(denom, address)))]
-    balances_by_denom: Index<(String, Vec<u8>), UBig>,
+    balances_by_denom: Index<(str, [u8]), UBig>,
 
     #[index(prefix = 6, on(balances(denom, module)))]
-    module_balances_by_denom: Index<(String, String), UBig>,
+    module_balances_by_denom: Index<(str, str), UBig>,
 }
 
 // impl Module for Bank {

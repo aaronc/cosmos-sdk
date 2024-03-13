@@ -25,7 +25,8 @@ pub mod sync;
 pub mod bundle;
 pub mod encoding;
 pub mod account;
-mod interface;
+pub mod interface;
+pub mod mem;
 
 pub use code::*;
 pub use context::*;

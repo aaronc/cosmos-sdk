@@ -1,6 +1,6 @@
-mod direct;
-mod dynamic_router;
-mod app_router;
+pub mod direct_router;
+pub mod dynamic_router;
+pub mod app_router;
 
 extern crate alloc;
 extern crate core;

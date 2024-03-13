@@ -9,6 +9,7 @@ use core::option::Option::{Some, None};
 use crate::id::AgentId;
 use crate::routing::{Client, ClientConnection, ClientDescriptor, ClientDescriptorHelper};
 use alloc::vec::Vec;
+use crate::mem::Ref;
 
 #[cfg(feature="alloc")]
 use crate::sync::{Completer, Completer1, PrepareContext};
@@ -81,12 +82,12 @@ impl Client for StoreClient {
 }
 
 impl StoreClient {
-    fn get<Ctx: ReadContext>(&self, ctx: &mut Ctx, key: &[u8]) -> Result<Vec<u8>> {
+    pub fn get<'a>(&self, ctx: &dyn ReadContext, key: &[u8]) -> Result<Ref<'a, &'a [u8]>> {
         // self.conn.route_io(self.route_id & 0x1, ctx, key)
         todo!()
     }
 
-    fn set<Ctx: Context>(&self, ctx: &mut Ctx, key: &[u8], value: &[u8]) -> Result<()> {
+    pub fn set(&self, ctx: &dyn Context, key: &[u8], value: &[u8]) -> Result<()> {
         // self.conn.route_i2(self.route_id & 0x2, ctx, key, value)
         todo!()
     }
