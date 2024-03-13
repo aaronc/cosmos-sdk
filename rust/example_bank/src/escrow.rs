@@ -35,7 +35,7 @@ impl AccountCreateMessageHandler<CreateEscrow> for Escrow {
 }
 
 impl Escrow {
-    fn authenticate_verifier(&self, ctx: &dyn AccountContext) -> cosmossdk_core::Result<()> {
+    fn authorize_verifier(&self, ctx: &dyn AccountContext) -> cosmossdk_core::Result<()> {
         if ctx.account_id().as_slice() != self.state.verifier.get(ctx)?.as_slice() {
             return err!(Code::PermissionDenied);
         }
@@ -46,7 +46,7 @@ impl Escrow {
 
 impl AccountMessageHandler<RefundEscrow> for Escrow {
     fn handle(&self, ctx: &dyn AccountContext, req: &RefundEscrow) -> cosmossdk_core::Result<()> {
-        self.authenticate_verifier(ctx)?;
+        self.authorize_verifier(ctx)?;
 
         self.bank_msg_client.send(ctx, &MsgSend {
             from: ctx.account_id().into(),
@@ -61,7 +61,7 @@ impl AccountMessageHandler<RefundEscrow> for Escrow {
 
 impl AccountMessageHandler<TransferEscrow> for Escrow {
     fn handle(&self, ctx: &dyn AccountContext, req: &TransferEscrow) -> cosmossdk_core::Result<()> {
-        let acct_address = self.authenticate_verifier(ctx)?;
+        self.authorize_verifier(ctx)?;
 
         self.bank_msg_client.send(ctx, &MsgSend {
             from: ctx.account_id().into(),
