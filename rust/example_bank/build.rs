@@ -8,6 +8,6 @@ fn main() -> Result<()> {
             "proto/example/bank/v1/bank.proto",
             "proto/example/escrow/v1/escrow.proto",
         ],
-        &["proto/"])?;
+        &["proto/", "../../proto"])?;
     Ok(())
 }

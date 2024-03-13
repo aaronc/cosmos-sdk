@@ -2,9 +2,13 @@ syntax = "proto3";
 
 package example.bank.v1;
 
+import "cosmos/msg/v1/msg.proto";
+
 message BankModule {}
 
 service Msg {
+  option (cosmos.msg.v1.service) = true;
+
   rpc Send(MsgSend) returns (MsgSendResponse);
 }
 

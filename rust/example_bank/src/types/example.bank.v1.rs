@@ -116,7 +116,7 @@ pub struct MsgClient {
 impl MsgClient {
     pub fn send(
         &self,
-        ctx: &dyn ::cosmossdk_core::ReadContext,
+        ctx: &dyn ::cosmossdk_core::Context,
         req: &MsgSend,
     ) -> ::cosmossdk_core::Result<MsgSendResponse> {
         todo!()
@@ -148,7 +148,7 @@ pub struct QueryClient {
 impl QueryClient {
     pub fn balance(
         &self,
-        ctx: &dyn ::cosmossdk_core::ReadContext,
+        ctx: &dyn ::cosmossdk_core::Context,
         req: &QueryBalance,
     ) -> ::cosmossdk_core::Result<QueryBalanceResponse> {
         todo!()

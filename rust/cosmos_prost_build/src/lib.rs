@@ -60,7 +60,9 @@ impl ServiceGen {
 
     fn generate(&mut self, service: Service) {
         let mut is_msg_service = false;
+        println!("cargo:warning=Starting generate: {:?}", service);
         service.options.uninterpreted_option.iter().for_each(|option| {
+            println!("cargo:warning=OPTION: {:?}", option);
         });
 
         self.generate_server(service.clone(), is_msg_service);
@@ -68,11 +70,12 @@ impl ServiceGen {
     }
 
     fn generate_client(&mut self, service: Service, is_msg_service: bool) {
-        let ctx_type = if is_msg_service {
-            quote! { ::cosmossdk_core::Context }
-        } else {
-            quote! { ::cosmossdk_core::ReadContext }
-        };
+        // let ctx_type = if is_msg_service {
+        //     quote! { ::cosmossdk_core::Context }
+        // } else {
+        //     quote! { ::cosmossdk_core::ReadContext }
+        // };
+        let ctx_type = quote! { ::cosmossdk_core::Context };
 
         let mut methods = vec![];
         for method in service.methods {
