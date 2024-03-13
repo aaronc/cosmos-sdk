@@ -103,13 +103,20 @@ impl ::prost::Name for InternalSendLazy {
         ::prost::alloc::format!("example.bank.v1.{}", Self::NAME)
     }
 }
+pub trait MsgServer {
+    fn send(
+        &self,
+        ctx: &dyn ::cosmossdk_core::module::ModuleContext,
+        req: &MsgSend,
+    ) -> ::cosmossdk_core::Result<MsgSendResponse>;
+}
 pub struct MsgClient {
     conn: ::cosmossdk_core::routing::ClientConnection,
 }
 impl MsgClient {
     pub fn send(
         &self,
-        ctx: &mut ::cosmossdk_core::Context,
+        ctx: &dyn ::cosmossdk_core::ReadContext,
         req: &MsgSend,
     ) -> ::cosmossdk_core::Result<MsgSendResponse> {
         todo!()
@@ -128,12 +135,12 @@ impl ::cosmossdk_core::routing::Client for MsgClient {
     }
 }
 impl ::cosmossdk_core::encoding::prost::ProstClient for MsgClient {}
-pub trait MsgServer {
-    fn send(
+pub trait QueryServer {
+    fn balance(
         &self,
-        ctx: &mut ::cosmossdk_core::Context,
-        req: &MsgSend,
-    ) -> ::cosmossdk_core::Result<MsgSendResponse>;
+        ctx: &dyn ::cosmossdk_core::module::ModuleContext,
+        req: &QueryBalance,
+    ) -> ::cosmossdk_core::Result<QueryBalanceResponse>;
 }
 pub struct QueryClient {
     conn: ::cosmossdk_core::routing::ClientConnection,
@@ -141,7 +148,7 @@ pub struct QueryClient {
 impl QueryClient {
     pub fn balance(
         &self,
-        ctx: &mut ::cosmossdk_core::Context,
+        ctx: &dyn ::cosmossdk_core::ReadContext,
         req: &QueryBalance,
     ) -> ::cosmossdk_core::Result<QueryBalanceResponse> {
         todo!()
@@ -160,13 +167,6 @@ impl ::cosmossdk_core::routing::Client for QueryClient {
     }
 }
 impl ::cosmossdk_core::encoding::prost::ProstClient for QueryClient {}
-pub trait QueryServer {
-    fn balance(
-        &self,
-        ctx: &mut ::cosmossdk_core::Context,
-        req: &QueryBalance,
-    ) -> ::cosmossdk_core::Result<QueryBalanceResponse>;
-}
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateEscrow {

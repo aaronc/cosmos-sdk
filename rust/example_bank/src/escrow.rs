@@ -1,5 +1,5 @@
-use cosmossdk_core::{Address, Code, Context, err, Handler, ok};
-use cosmossdk_core::account::CreateAccountHandler;
+use cosmossdk_core::{Address, Code, Context, err, ok};
+use cosmossdk_core::account::{AccountContext, AccountCreateMessageHandler, AccountMessageHandler};
 use cosmossdk_core::AgentId::Account;
 use cosmossdk_macros::AccountHandler;
 use state_objects::Item;
@@ -25,8 +25,8 @@ pub struct EscrowState {
     recipient: Item<Vec<u8>>,
 }
 
-impl CreateAccountHandler<CreateEscrow> for Escrow {
-    fn create(&self, ctx: &mut Context, req: &CreateEscrow) -> cosmossdk_core::Result<()> {
+impl AccountCreateMessageHandler<CreateEscrow> for Escrow {
+    fn create(&self, ctx: &dyn AccountContext, req: &CreateEscrow) -> cosmossdk_core::Result<()> {
         self.state.depositor.set(ctx, &req.depositor)?;
         self.state.verifier.set(ctx, &req.verifier)?;
         self.state.recipient.set(ctx, &req.recipient)?;
@@ -35,7 +35,7 @@ impl CreateAccountHandler<CreateEscrow> for Escrow {
 }
 
 impl Escrow {
-    fn authenticate_verifier<'b>(&self, ctx: &'b Context) -> cosmossdk_core::Result<&'b Address> {
+    fn authenticate_verifier<'a>(&self, ctx: &'a dyn AccountContext) -> cosmossdk_core::Result<&'a Address> {
         let Account(acct_address) = ctx.caller_id() else {
             return err!(Code::PermissionDenied);
         };
@@ -48,8 +48,8 @@ impl Escrow {
     }
 }
 
-impl Handler<RefundEscrow> for Escrow {
-    fn handle(&self, ctx: &mut Context, req: &RefundEscrow) -> cosmossdk_core::Result<()> {
+impl AccountMessageHandler<RefundEscrow> for Escrow {
+    fn handle(&self, ctx: &dyn AccountContext, req: &RefundEscrow) -> cosmossdk_core::Result<()> {
         let acct_address = self.authenticate_verifier(ctx)?;
 
         self.bank_msg_client.send(ctx, &MsgSend {
@@ -63,8 +63,8 @@ impl Handler<RefundEscrow> for Escrow {
     }
 }
 
-impl Handler<TransferEscrow> for Escrow {
-    fn handle(&self, ctx: &mut Context, req: &TransferEscrow) -> cosmossdk_core::Result<()> {
+impl AccountMessageHandler<TransferEscrow> for Escrow {
+    fn handle(&self, ctx: &dyn AccountContext, req: &TransferEscrow) -> cosmossdk_core::Result<()> {
         let acct_address = self.authenticate_verifier(ctx)?;
 
         self.bank_msg_client.send(ctx, &MsgSend {

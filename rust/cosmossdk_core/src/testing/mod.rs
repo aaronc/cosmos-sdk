@@ -47,13 +47,13 @@ impl TestApp {
 }
 
 
-pub struct TestClient<'a> {
-    app: &'a mut TestApp,
+pub struct TestClient {
+    app: TestApp,
     identity: AgentId,
 }
 
-impl <'a> TestClient<'a> {
-    pub fn new<T: Client<'a>>(&mut self) -> T {
+impl TestClient {
+    pub fn new<T: Client>(&mut self) -> T {
         todo!()
     }
 
@@ -61,7 +61,7 @@ impl <'a> TestClient<'a> {
         &self.identity
     }
 
-    pub fn context(&self) -> Context {
+    pub fn context(&self) -> &dyn Context {
         todo!()
     }
 }

@@ -2,9 +2,9 @@ extern crate core;
 use core::ops::Fn;
 use crate::{Context, Result};
 
-pub struct PrepareContext(Context);
+pub struct PrepareContext();
 
-pub struct ExecContext(Context);
+pub struct ExecContext();
 
 pub struct Exec<T> {
     exec: Box<dyn FnOnce(&mut ExecContext) -> Result<T>>

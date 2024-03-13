@@ -1,6 +1,6 @@
 use dashu_int::UBig;
 use cosmossdk_core::{Code, Context, ok, err};
-use cosmossdk_core::module::Module;
+use cosmossdk_core::module::{Module, ModuleContext, ModuleReadContext};
 use state_objects::{Index, Map, UBigMap};
 use crate::example::bank::v1::{InternalSendLazy, MsgSend, MsgSendResponse, MsgServer, QueryBalance, QueryBalanceResponse, QueryServer};
 use core::borrow::Borrow;
@@ -57,7 +57,7 @@ pub struct BankState {
 // }
 
 impl MsgServer for Bank {
-    fn send(&self, ctx: &mut Context, req: &MsgSend) -> ::cosmossdk_core::Result<MsgSendResponse> {
+    fn send(&self, ctx: &dyn ModuleContext, req: &MsgSend) -> ::cosmossdk_core::Result<MsgSendResponse> {
         // checking send enabled uses last block state so no need to synchronize reads
         if !self.state.send_enabled.get_stale(ctx, req.denom.borrow())? {
             return err!(Code::Unavailable, "send disabled for denom {}", req.denom)
@@ -73,7 +73,7 @@ impl MsgServer for Bank {
 }
 
 impl QueryServer for Bank {
-    fn balance(&self, ctx: &mut Context, req: &QueryBalance) -> cosmossdk_core::Result<QueryBalanceResponse> {
+    fn balance(&self, ctx: &dyn ModuleContext, req: &QueryBalance) -> cosmossdk_core::Result<QueryBalanceResponse> {
         self.state.balances.read(ctx, (req.address.borrow(), req.denom.borrow())).map(|balance| {
             QueryBalanceResponse {
                 balance: balance.to_le_bytes().to_vec(),
@@ -105,14 +105,14 @@ mod tests {
     // use cosmossdk_core::Server;
     // use cosmossdk_core::store::{MockStore, Store};
 
-    struct Fixture<'a> {
+    struct Fixture {
         app: Box<TestApp>,
-        test_store: &'a TestStore,
-        client: TestClient<'a>,
-        bank_client: MsgClient<'a>,
+        test_store: TestStore,
+        client: TestClient,
+        bank_client: MsgClient,
     }
 
-    fn fixture() -> Fixture<'static> {
+    fn fixture() -> Fixture {
         // let mut mock_store = TestStore::default();
         let mut app = Box::new(TestApp::new());
         app.add_module_default::<Bank>("bank");
@@ -122,7 +122,7 @@ mod tests {
         let mut ctx = client.context();
         Fixture {
             app,
-            test_store: mock_store,
+            test_store: todo!(),
             client,
             bank_client,
         }

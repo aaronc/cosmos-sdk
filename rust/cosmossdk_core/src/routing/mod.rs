@@ -6,12 +6,13 @@ extern crate alloc;
 extern crate core;
 
 use alloc::sync::Arc;
-use crate::{AgentId, Code, Context, error, Result};
+use crate::{AgentId, Code, error, Result, Context, ReadContext, ModuleId};
 use crate::id::Address;
+use crate::module::{ModuleContext, ModuleReadContext};
 
 // alternate designs
 pub trait ServiceHandler {
-    fn invoke(&self, method_id: u16, ctx: &mut Context, call_data: &mut CallArgs) -> Result<()>;
+    fn invoke(&self, method_id: u16, ctx: &mut ContextData, call_data: &mut CallArgs) -> Result<()>;
 }
 
 pub trait Service: ServiceHandler {
@@ -48,7 +49,7 @@ impl ClientConnection {
         }
     }
 
-    pub fn invoke(&self, ctx: &Context, args: &mut ClientCallArgs) -> Result<()> {
+    pub fn invoke(&self, ctx: &mut ContextData, args: &mut ClientCallArgs) -> Result<()> {
         args.0.route_info = self.default_route_info.clone();
         args.0.context.id = ctx.id;
         args.0.context.source = ctx.target.clone();
@@ -97,7 +98,7 @@ pub enum ServiceType {
 
 #[repr(C)]
 struct CallData {
-    context: Context,
+    context: ContextData,
     data: CallArgs,
     route_info: RouteInfo,
 }
@@ -173,5 +174,29 @@ struct BytesPtr {
 
 pub trait ModuleServiceResolver {
     fn resolve_service_handler(&self, index: u16) -> &dyn ServiceHandler;
+}
+
+#[repr(C)]
+pub struct ContextData {
+    pub(crate) id: u64,
+    pub(crate) source: AgentId,
+    pub(crate) target: AgentId,
+    _padding: [u8; 508], // extra space for future use and makes context 1024 bytes
+}
+
+impl ReadContext for ContextData {
+    fn id(&self) -> u64 {
+        self.id
+    }
+
+    fn self_id(&self) -> &AgentId {
+        &self.target
+    }
+}
+
+impl Context for ContextData {
+    fn caller_id(&self) -> &AgentId {
+        &self.source
+    }
 }
 

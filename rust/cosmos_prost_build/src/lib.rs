@@ -1,8 +1,11 @@
 use std::env;
 use std::path::{Path, PathBuf};
+use proc_macro2::TokenStream;
 use prost_build::{Service, ServiceGenerator};
 use prost_types::FileDescriptorSet;
 use quote::{format_ident, quote};
+
+include!("_includes.rs");
 
 pub struct Config {
     pub prost_config: prost_build::Config,
@@ -56,19 +59,28 @@ impl ServiceGen {
     }
 
     fn generate(&mut self, service: Service) {
-        self.generate_client(service.clone());
-        self.generate_server(service);
+        let mut is_msg_service = false;
+        service.options.uninterpreted_option.iter().for_each(|option| {
+        });
+
+        self.generate_server(service.clone(), is_msg_service);
+        self.generate_client(service.clone(), is_msg_service);
     }
 
-    fn generate_client(&mut self, service: Service) {
-        let mut methods = vec![];
+    fn generate_client(&mut self, service: Service, is_msg_service: bool) {
+        let ctx_type = if is_msg_service {
+            quote! { ::cosmossdk_core::Context }
+        } else {
+            quote! { ::cosmossdk_core::ReadContext }
+        };
 
+        let mut methods = vec![];
         for method in service.methods {
             let name = format_ident!("{}", method.name);
             let input = format_ident!("{}", method.input_type);
             let output = format_ident!("{}", method.output_type);
             methods.push(quote! {
-                pub fn #name(&self, ctx: &mut ::cosmossdk_core::Context, req: &#input) -> ::cosmossdk_core::Result<#output> {
+                pub fn #name(&self, ctx: &dyn #ctx_type, req: &#input) -> ::cosmossdk_core::Result<#output> {
                     todo!()
                 }
             })
@@ -98,15 +110,21 @@ impl ServiceGen {
         })
     }
 
-    fn generate_server(&mut self, service: Service) {
-        let mut methods = vec![];
+    fn generate_server(&mut self, service: Service, is_msg_service: bool) {
+        // let ctx_type = if is_msg_service {
+        //     quote! { ::cosmossdk_core::module::ModuleContext }
+        // } else {
+        //     quote! { ::cosmossdk_core::module::ModuleReadContext }
+        // };
+        let ctx_type =quote! { ::cosmossdk_core::module::ModuleContext };
 
+        let mut methods = vec![];
         for method in service.methods {
             let name = format_ident!("{}", method.name);
             let input = format_ident!("{}", method.input_type);
             let output = format_ident!("{}", method.output_type);
             methods.push(quote! {
-                fn #name(&self, ctx: &mut ::cosmossdk_core::Context, req: &#input) -> ::cosmossdk_core::Result<#output>;
+                fn #name(&self, ctx: &dyn #ctx_type, req: &#input) -> ::cosmossdk_core::Result<#output>;
             })
         }
 

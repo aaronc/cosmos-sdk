@@ -17,7 +17,6 @@ pub mod routing;
 
 mod code;
 mod id;
-mod handler;
 mod result;
 mod context;
 pub mod module;
@@ -32,7 +31,6 @@ pub use code::*;
 pub use context::*;
 pub use result::*;
 pub use id::*;
-pub use handler::*;
 
 // pub mod cosmos {
 //     pub mod core {

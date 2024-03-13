@@ -1,18 +1,20 @@
-use crate::{Code, Context, error};
-use crate::handler::{Handler, HandlerWithResponse};
-use crate::routing::{CallArgs, ServiceHandler};
+use crate::{AgentId, Code, Context, err, error, ModuleId, ReadContext};
+use crate::module::{MessageHandler, MessageHandlerWithResponse, ModuleContext, ModuleReadContext};
+use crate::routing::{CallArgs, ContextData, ServiceHandler};
 
-impl<Req: prost::Name + Default> ServiceHandler for dyn Handler<Req> {
-    fn invoke(&self, _method_id: u16, ctx: &mut Context, args: &mut CallArgs) -> crate::Result<()> {
+impl<Req: prost::Name + Default> ServiceHandler for dyn MessageHandler<Req> {
+    fn invoke(&self, _method_id: u16, ctx: &mut ContextData, args: &mut CallArgs) -> crate::Result<()> {
         debug_assert_eq!(_method_id, 0);
-        self.handle(ctx, &marshal_service_req(args)?)
+        let ctx = ModuleContextData::new(ctx)?;
+        self.handle(&ctx, &marshal_service_req(args)?)
     }
 }
 
-impl<Req: prost::Name + Default, Res: prost::Name> ServiceHandler for dyn HandlerWithResponse<Req, Res> {
-    fn invoke(&self, _method_id: u16, ctx: &mut Context, args: &mut CallArgs) -> crate::Result<()> {
+impl<Req: prost::Name + Default, Res: prost::Name> ServiceHandler for dyn MessageHandlerWithResponse<Req, Res> {
+    fn invoke(&self, _method_id: u16, ctx: &mut ContextData, args: &mut CallArgs) -> crate::Result<()> {
         debug_assert_eq!(_method_id, 0);
-        marshal_service_res(args, self.handle(ctx, &marshal_service_req(args)?))
+        let ctx = ModuleContextData::new(ctx)?;
+        marshal_service_res(args, self.handle(&ctx, &marshal_service_req(args)?))
     }
 }
 
@@ -27,3 +29,43 @@ pub fn marshal_service_res<T: prost::Message>(args: &mut CallArgs, res: crate::R
         args.set_out1(res.encode_to_vec());
     })
 }
+
+struct ModuleContextData<'a> {
+    context: &'a ContextData,
+    module_id: &'a ModuleId,
+}
+
+impl <'a> ModuleContextData<'a> {
+    pub fn new(context: &'a ContextData) -> crate::Result<Self> {
+        let AgentId::Module(module_id) = &context.target else {
+            return err!(Code::Internal, "ModuleContextData::new: target is not a module")
+        };
+        Ok(ModuleContextData {
+            context,
+            module_id,
+        })
+    }
+}
+
+impl <'a> ReadContext for ModuleContextData<'a> {
+    fn id(&self) -> u64 {
+        self.context.id
+    }
+
+    fn self_id(&self) -> &AgentId {
+        &self.context.target
+    }
+}
+
+impl <'a> Context for ModuleContextData<'a> {
+    fn caller_id(&self) -> &AgentId {
+        &self.context.source
+    }
+}
+
+impl <'a> ModuleReadContext for ModuleContextData<'a> {
+    fn module_id(&self) -> &ModuleId {
+        &self.module_id
+    }
+}
+impl <'a> ModuleContext for ModuleContextData<'a> {}

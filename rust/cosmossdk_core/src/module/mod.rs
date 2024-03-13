@@ -1,4 +1,15 @@
+use crate::{AgentId, Context, ModuleId, ReadContext};
 use crate::routing::{Client, ClientFactory, ModuleServiceResolver, ServiceHandler};
+
+mod handler;
+
+pub use handler::*;
+
+pub trait ModuleReadContext: ReadContext {
+    fn module_id(&self) -> &ModuleId;
+}
+
+pub trait ModuleContext: Context + ModuleReadContext {}
 
 pub trait Module: ModuleServiceResolver {
     // type Config;

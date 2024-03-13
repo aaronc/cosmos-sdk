@@ -1,7 +1,7 @@
 // mod async;
 
 use dashu_int::UBig;
-use cosmossdk_core::{Address, Code, Context, Result};
+use cosmossdk_core::{Address, Code, Context, ReadContext, Result};
 use cosmossdk_core::routing::Client;
 use cosmossdk_core::store::{StoreClient};
 use cosmossdk_core::sync::{Completer, Completer1, PrepareContext};
@@ -219,15 +219,15 @@ impl<K: KeyCodec, V: ValueCodec> Map<K, V> {
         }
     }
 
-    pub fn get(&self, ctx: &cosmossdk_core::Context, key: K::In<'_>) -> cosmossdk_core::Result<V::Out> {
+    pub fn get(&self, ctx: &dyn ReadContext, key: K::In<'_>) -> cosmossdk_core::Result<V::Out> {
         todo!()
     }
 
-    pub fn get_stale(&self, ctx: &cosmossdk_core::Context, key: K::In<'_>) -> cosmossdk_core::Result<V::Out> {
+    pub fn get_stale(&self, ctx: &dyn Context, key: K::In<'_>) -> cosmossdk_core::Result<V::Out> {
         todo!()
     }
 
-    pub fn set(&self, ctx: &cosmossdk_core::Context, key: K::In<'_>, value: &V::In<'_>) -> cosmossdk_core::Result<()> {
+    pub fn set(&self, ctx: &dyn Context, key: K::In<'_>, value: &V::In<'_>) -> cosmossdk_core::Result<()> {
         todo!()
     }
 }
@@ -263,27 +263,27 @@ pub struct UBigMap<K> {
 }
 
 impl<K: KeyCodec> UBigMap<K> {
-    pub fn has(&self, ctx: &Context, key: K::In<'_>) -> cosmossdk_core::Result<bool> {
+    pub fn has(&self, ctx: &dyn ReadContext, key: K::In<'_>) -> cosmossdk_core::Result<bool> {
         todo!()
     }
 
-    pub fn read(&self, ctx: &Context, key: K::In<'_>) -> cosmossdk_core::Result<UBig> {
+    pub fn read(&self, ctx: &dyn ReadContext, key: K::In<'_>) -> cosmossdk_core::Result<UBig> {
         todo!()
     }
 
-    pub fn delete(&self, ctx: &mut Context, key: K::In<'_>) -> cosmossdk_core::Result<()> {
+    pub fn delete(&self, ctx: &dyn Context, key: K::In<'_>) -> cosmossdk_core::Result<()> {
         todo!()
     }
 
-    pub fn safe_sub(&self, ctx: &mut Context, key: K::In<'_>, value: &UBig) -> cosmossdk_core::Result<UBig> {
+    pub fn safe_sub(&self, ctx: &dyn  Context, key: K::In<'_>, value: &UBig) -> cosmossdk_core::Result<UBig> {
         todo!()
     }
 
-    pub fn add(&self, ctx: &mut Context, key: K::In<'_>, value: &UBig) -> cosmossdk_core::Result<UBig> {
+    pub fn add(&self, ctx: &dyn Context, key: K::In<'_>, value: &UBig) -> cosmossdk_core::Result<UBig> {
         todo!()
     }
 
-    pub fn add_lazy(&self, ctx: &mut Context, key: K::In<'_>, value: &UBig) {
+    pub fn add_lazy(&self, ctx: &dyn Context, key: K::In<'_>, value: &UBig) {
         todo!()
     }
 
@@ -328,11 +328,11 @@ pub struct Item<T> {
 }
 
 impl <T: ValueCodec> Item<T> {
-    pub fn get(&self, ctx: &Context) -> Result<T::Out> {
+    pub fn get(&self, ctx: &dyn ReadContext) -> Result<T::Out> {
         todo!()
     }
 
-    pub fn set(&self, ctx: &mut Context, value: T::In<'_>) -> Result<()> {
+    pub fn set(&self, ctx: &dyn Context, value: T::In<'_>) -> Result<()> {
         todo!()
     }
 }
