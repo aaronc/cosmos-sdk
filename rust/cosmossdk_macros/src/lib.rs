@@ -28,7 +28,7 @@ fn do_derive_module(item: proc_macro2::TokenStream) -> deluxe::Result<proc_macro
                 }
             }
 
-            fn new<'a, F: cosmossdk_core::routing::ClientFactory<'a>>(config_bytes: &[u8], client_factory: &'a F) -> Self {
+            fn new<F: cosmossdk_core::routing::ClientFactory>(config_bytes: &[u8], client_factory: &F) -> Self {
                 todo!()
             }
         }
@@ -98,11 +98,11 @@ fn do_derive_account_handler(item: proc_macro2::TokenStream) -> deluxe::Result<p
     let AccountHandlerArgs { create, services } = deluxe::extract_attributes(&mut input)?;
 
     Ok(quote!(
-        // impl <'a> cosmossdk_core::account::AccountHandler for #ident<'a> {
-        //     type CreateMessage = #create;
-        // }
+        impl cosmossdk_core::account::AccountHandler for #ident {
+            type CreateMessage = #create;
+        }
 
-        impl <'a> cosmossdk_core::routing::ModuleServiceResolver for #ident<'a> {
+        impl cosmossdk_core::routing::ModuleServiceResolver for #ident {
             fn resolve_service_handler(&self, index: u16) -> &dyn cosmossdk_core::routing::ServiceHandler {
                 todo!()
             }

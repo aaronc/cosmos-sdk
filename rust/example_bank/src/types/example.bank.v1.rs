@@ -103,10 +103,10 @@ impl ::prost::Name for InternalSendLazy {
         ::prost::alloc::format!("example.bank.v1.{}", Self::NAME)
     }
 }
-pub struct MsgClient<'a> {
-    conn: ::cosmossdk_core::routing::ClientConnection<'a>,
+pub struct MsgClient {
+    conn: ::cosmossdk_core::routing::ClientConnection,
 }
-impl<'a> MsgClient<'a> {
+impl MsgClient {
     pub fn send(
         &self,
         ctx: &mut ::cosmossdk_core::Context,
@@ -115,8 +115,8 @@ impl<'a> MsgClient<'a> {
         todo!()
     }
 }
-impl<'a> ::cosmossdk_core::routing::Client<'a> for MsgClient<'a> {
-    fn new(conn: ::cosmossdk_core::routing::ClientConnection<'a>) -> Self {
+impl ::cosmossdk_core::routing::Client for MsgClient {
+    fn new(conn: ::cosmossdk_core::routing::ClientConnection) -> Self {
         Self { conn }
     }
     fn describe(
@@ -127,7 +127,7 @@ impl<'a> ::cosmossdk_core::routing::Client<'a> for MsgClient<'a> {
         )
     }
 }
-impl<'a> ::cosmossdk_core::encoding::prost::ProstClient<'a> for MsgClient<'a> {}
+impl ::cosmossdk_core::encoding::prost::ProstClient for MsgClient {}
 pub trait MsgServer {
     fn send(
         &self,
@@ -135,10 +135,10 @@ pub trait MsgServer {
         req: &MsgSend,
     ) -> ::cosmossdk_core::Result<MsgSendResponse>;
 }
-pub struct QueryClient<'a> {
-    conn: ::cosmossdk_core::routing::ClientConnection<'a>,
+pub struct QueryClient {
+    conn: ::cosmossdk_core::routing::ClientConnection,
 }
-impl<'a> QueryClient<'a> {
+impl QueryClient {
     pub fn balance(
         &self,
         ctx: &mut ::cosmossdk_core::Context,
@@ -147,8 +147,8 @@ impl<'a> QueryClient<'a> {
         todo!()
     }
 }
-impl<'a> ::cosmossdk_core::routing::Client<'a> for QueryClient<'a> {
-    fn new(conn: ::cosmossdk_core::routing::ClientConnection<'a>) -> Self {
+impl ::cosmossdk_core::routing::Client for QueryClient {
+    fn new(conn: ::cosmossdk_core::routing::ClientConnection) -> Self {
         Self { conn }
     }
     fn describe(
@@ -159,7 +159,7 @@ impl<'a> ::cosmossdk_core::routing::Client<'a> for QueryClient<'a> {
         )
     }
 }
-impl<'a> ::cosmossdk_core::encoding::prost::ProstClient<'a> for QueryClient<'a> {}
+impl ::cosmossdk_core::encoding::prost::ProstClient for QueryClient {}
 pub trait QueryServer {
     fn balance(
         &self,

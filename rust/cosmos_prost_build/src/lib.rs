@@ -76,16 +76,16 @@ impl ServiceGen {
         let client_name = format_ident!("{}Client", service.name);
         let service_name = format!("{}.{}", service.package, service.proto_name);
         self.add(quote! {
-            pub struct #client_name<'a> {
-                conn: ::cosmossdk_core::routing::ClientConnection<'a>
+            pub struct #client_name {
+                conn: ::cosmossdk_core::routing::ClientConnection
             }
 
-            impl <'a> #client_name<'a> {
+            impl #client_name {
                 #( #methods )*
             }
 
-            impl <'a> ::cosmossdk_core::routing::Client<'a> for #client_name<'a> {
-                fn new(conn: ::cosmossdk_core::routing::ClientConnection<'a>) -> Self {
+            impl ::cosmossdk_core::routing::Client for #client_name {
+                fn new(conn: ::cosmossdk_core::routing::ClientConnection) -> Self {
                     Self { conn }
                 }
 
@@ -94,7 +94,7 @@ impl ServiceGen {
                 }
             }
 
-            impl <'a> ::cosmossdk_core::encoding::prost::ProstClient<'a> for #client_name<'a> {}
+            impl ::cosmossdk_core::encoding::prost::ProstClient for #client_name {}
         })
     }
 

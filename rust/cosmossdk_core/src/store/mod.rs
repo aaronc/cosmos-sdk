@@ -13,20 +13,20 @@ use alloc::vec::Vec;
 #[cfg(feature="alloc")]
 use crate::sync::{Completer, Completer1, PrepareContext};
 
-pub struct StoreClient<'a> {
-    conn: ClientConnection<'a>
+pub struct StoreClient {
+    conn: ClientConnection
 }
 
 pub trait StoreServer {
-    fn get(&self, ctx: &mut Context, caller: &AgentId, key: &[u8]) -> Result<Vec<u8>>;
+    fn get(&self, ctx: &mut Context, key: &[u8]) -> Result<Vec<u8>>;
 
-    fn set(&self, ctx: &mut Context, caller: &AgentId, key: &[u8], value: &[u8]) -> Result<()>;
+    fn set(&self, ctx: &mut Context, key: &[u8], value: &[u8]) -> Result<()>;
 
-    fn delete(&self, ctx: &mut Context, caller: &AgentId, key: &[u8]) -> Result<()>;
+    fn delete(&self, ctx: &mut Context, key: &[u8]) -> Result<()>;
 
-    fn has(&self, ctx: &mut Context, caller: &AgentId, key: &[u8]) -> Result<bool>;
+    fn has(&self, ctx: &mut Context, key: &[u8]) -> Result<bool>;
 
-    fn get_stale(&self, ctx: &mut Context, caller: &AgentId, key: &[u8]) -> Result<Vec<u8>>;
+    fn get_stale(&self, ctx: &mut Context, key: &[u8]) -> Result<Vec<u8>>;
 
     fn set_lazy<F: FnOnce(Option<&[u8]>) -> Option<Vec<u8>>>(&self, ctx: &mut Context, caller: &AgentId, key: &[u8], value_fn: F) -> Result<()>;
 
@@ -70,17 +70,17 @@ pub trait StoreServer {
 //
 // }
 
-impl <'a> Client<'a> for StoreClient<'a> {
+impl Client for StoreClient {
     fn describe(helper: &mut dyn ClientDescriptorHelper) -> ClientDescriptor {
         ClientDescriptor::StoreClient{ordered: false}
     }
 
-    fn new(conn: ClientConnection<'a>) -> Self {
+    fn new(conn: ClientConnection) -> Self {
         todo!()
     }
 }
 
-impl StoreClient<'_> {
+impl StoreClient {
     fn get(&self, ctx: &mut Context, key: &[u8]) -> Result<Vec<u8>> {
         // self.conn.route_io(self.route_id & 0x1, ctx, key)
         todo!()

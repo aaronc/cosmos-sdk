@@ -6,7 +6,7 @@ use cosmossdk_core::routing::Client;
 use cosmossdk_core::store::{StoreClient};
 use cosmossdk_core::sync::{Completer, Completer1, PrepareContext};
 
-pub trait State<'a>: Client<'a> {}
+pub trait State: Client {}
 
 pub trait KeyCodec {
     type In<'a>;

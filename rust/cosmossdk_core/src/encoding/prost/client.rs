@@ -1,25 +1,25 @@
 use crate::routing::{Client, ClientConnection, ClientDescriptor, ClientDescriptorHelper, ClientFactory};
 
-pub struct DynamicProstClient<'a> {
-    conn: ClientConnection<'a>,
+pub struct DynamicProstClient {
+    conn: ClientConnection,
 }
 
-impl<'a> DynamicProstClient<'a> {
+impl DynamicProstClient {
     pub fn invoke<T: prost::Name>() -> crate::Result<()> {
         todo!()
     }
 
-    pub fn new_client<T: ProstClient<'a>>() -> T {
+    pub fn new_client<T: ProstClient>() -> T {
         todo!()
     }
 }
 
-impl<'a> Client<'a> for DynamicProstClient<'a> {
+impl Client for DynamicProstClient {
     fn describe(_helper: &mut dyn ClientDescriptorHelper) -> ClientDescriptor {
         ClientDescriptor::DynamicProtoClient
     }
 
-    fn new(conn: ClientConnection<'a>) -> Self {
+    fn new(conn: ClientConnection) -> Self {
         DynamicProstClient {
             conn
         }
@@ -27,4 +27,4 @@ impl<'a> Client<'a> for DynamicProstClient<'a> {
 }
 
 // This is a marker trait for generated code that is a prost client.
-pub trait ProstClient<'a>: Client<'a> {}
+pub trait ProstClient: Client {}

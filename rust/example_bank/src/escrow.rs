@@ -13,9 +13,9 @@ use crate::example::bank::v1::{CreateEscrow, MsgSend, RefundEscrow, TransferEscr
         Handler<RefundEscrow>,
         Handler<TransferEscrow>
 ])]
-pub struct Escrow<'a> {
+pub struct Escrow {
     state: EscrowState,
-    bank_msg_client: crate::example::bank::v1::MsgClient<'a>,
+    bank_msg_client: crate::example::bank::v1::MsgClient,
 }
 
 #[derive(State)]
@@ -25,7 +25,7 @@ pub struct EscrowState {
     recipient: Item<Vec<u8>>,
 }
 
-impl <'a> CreateAccountHandler<CreateEscrow> for Escrow<'a> {
+impl CreateAccountHandler<CreateEscrow> for Escrow {
     fn create(&self, ctx: &mut Context, req: &CreateEscrow) -> cosmossdk_core::Result<()> {
         self.state.depositor.set(ctx, &req.depositor)?;
         self.state.verifier.set(ctx, &req.verifier)?;
@@ -34,7 +34,7 @@ impl <'a> CreateAccountHandler<CreateEscrow> for Escrow<'a> {
     }
 }
 
-impl <'a> Escrow<'a> {
+impl Escrow {
     fn authenticate_verifier<'b>(&self, ctx: &'b Context) -> cosmossdk_core::Result<&'b Address> {
         let Account(acct_address) = ctx.caller_id() else {
             return err!(Code::PermissionDenied);
@@ -48,7 +48,7 @@ impl <'a> Escrow<'a> {
     }
 }
 
-impl <'a> Handler<RefundEscrow> for Escrow<'a> {
+impl Handler<RefundEscrow> for Escrow {
     fn handle(&self, ctx: &mut Context, req: &RefundEscrow) -> cosmossdk_core::Result<()> {
         let acct_address = self.authenticate_verifier(ctx)?;
 
@@ -63,7 +63,7 @@ impl <'a> Handler<RefundEscrow> for Escrow<'a> {
     }
 }
 
-impl <'a> Handler<TransferEscrow> for Escrow<'a> {
+impl Handler<TransferEscrow> for Escrow {
     fn handle(&self, ctx: &mut Context, req: &TransferEscrow) -> cosmossdk_core::Result<()> {
         let acct_address = self.authenticate_verifier(ctx)?;
 

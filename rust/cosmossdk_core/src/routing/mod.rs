@@ -2,9 +2,11 @@ mod direct;
 mod dynamic_router;
 mod app_router;
 
+extern crate alloc;
 extern crate core;
 
-use crate::{AgentId, Context, Result};
+use alloc::sync::Arc;
+use crate::{AgentId, Code, Context, error, Result};
 use crate::id::Address;
 
 // alternate designs
@@ -29,17 +31,17 @@ pub trait Router {
     fn invoke(&self, call_data: &mut CallData) -> Result<()>;
 }
 
-pub trait ClientFactory<'a> {
-    fn new<T: Client<'a>>(&'a self) -> T;
+pub trait ClientFactory {
+    fn new<T: Client>(&self) -> T;
 }
 
-pub struct ClientConnection<'a> {
-    router: &'a dyn Router,
+pub struct ClientConnection {
+    router: alloc::sync::Weak<dyn Router>,
     default_route_info: RouteInfo,
 }
 
-impl <'a> ClientConnection<'a> {
-    pub fn new(router: &'a dyn Router, default_route_info: RouteInfo) -> Self {
+impl ClientConnection {
+    pub fn new(router: alloc::sync::Weak<dyn Router>, default_route_info: RouteInfo) -> Self {
         ClientConnection {
             router,
             default_route_info,
@@ -50,13 +52,16 @@ impl <'a> ClientConnection<'a> {
         args.0.route_info = self.default_route_info.clone();
         args.0.context.id = ctx.id;
         args.0.context.source = ctx.target.clone();
-        self.router.invoke(&mut args.0)
+        let router = &self.router.upgrade().ok_or(
+            error!(Code::Internal, "Router has been dropped")
+        )?;
+        router.invoke(&mut args.0)
     }
 }
 
-pub trait Client<'a> {
+pub trait Client {
     fn describe(helper: &mut dyn ClientDescriptorHelper) -> ClientDescriptor;
-    fn new(conn: ClientConnection<'a>) -> Self;
+    fn new(conn: ClientConnection) -> Self;
 }
 
 #[derive(Clone)]
