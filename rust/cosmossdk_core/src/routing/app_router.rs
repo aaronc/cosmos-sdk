@@ -4,13 +4,15 @@ use alloc::sync::Arc;
 use alloc::collections::BTreeMap;
 use std::ptr::null_mut;
 use crate::bundle::{ModuleBundle, ModuleBundleVisitor};
-use crate::module::{DescribeModule, Module};
+use crate::module::{DescribeModule, Module, ModuleDyn};
 use crate::routing::direct_router::DirectRouter;
-use crate::routing::{CallData, Client, Encoding, LocalRouteInfo, RouteInfo, Router, Service, ServiceDescriptor, ServiceDescriptorHelper, ServiceHandler};
+use crate::routing::{CallData, Client, ClientConnection, Encoding, LocalRouteInfo, RouteInfo, Router, Service, ServiceDescriptor, ServiceDescriptorHelper, ServiceHandler};
 
 pub struct AppRouter {
     direct_router: *mut Box<DirectRouter>,
     route_translation_table: BTreeMap<String, ResolvedRoute>,
+    pub module_idx: u32,
+    pub service_idx: u32,
 }
 
 enum ResolvedRoute {
@@ -28,27 +30,64 @@ enum ResolvedRouteAddress {
     Remote { loader_id: u32, bundle_id: u32, local: LocalRouteInfo },
 }
 
-impl AppRouter {
-    pub fn build<B: ModuleBundle>(module_configs: Vec<Vec<u8>>) -> crate::Result<Arc<dyn Router>> {
-        let mut route_table_builder = RouteTableBuilder {
-            table: Default::default(),
+pub struct AppRouterBuilder {
+    route_builder: RouteTableBuilder,
+    direct_router: DirectRouter,
+}
+
+impl AppRouterBuilder {
+    pub fn new() -> Self{
+        let mut router = AppRouter {
+            direct_router: null_mut(),
+            route_translation_table: Default::default(),
             module_idx: 0,
             service_idx: 0,
         };
-        B::visit(&mut route_table_builder)?;
-        let mut router = Self {
-            direct_router: null_mut(),
-            route_translation_table: route_table_builder.table,
-        };
-        let mut direct_router_ptr = unsafe { router.direct_router };
-        let self_arc: Arc<dyn Router> = Arc::new(router);
-        let direct_router = Box::new(DirectRouter::build::<B>(module_configs, Arc::downgrade(&self_arc))?);
-        unsafe {
-            *direct_router_ptr = direct_router;
-        }
-        Ok(self_arc)
+        todo!()
+        // let mut direct_router_ptr = unsafe { router.direct_router };
+        // let self_arc: Arc<dyn Router> = Arc::new(router);
+        // let direct_router = Box::new(DirectRouter::build::<B>(module_configs, Arc::downgrade(&self_arc))?);
+        // unsafe {
+        //     *direct_router_ptr = direct_router;
+        // }
+        // Ok(self_arc)
+        // AppRouterBuilder {
+        // }
+
+    }
+
+    pub fn add_module<T: Module + 'static>(&mut self, config_bytes: &[u8]) {
+        self.direct_router.add_module::<T>(config_bytes);
+        todo!()
+    }
+
+    pub fn add_module_dyn(&mut self, m: &dyn ModuleDyn, config_bytes: &[u8]) {
+        todo!()
     }
 }
+
+
+// impl AppRouterBuilder {
+//     pub fn build<B: ModuleBundle>(module_configs: Vec<Vec<u8>>) -> crate::Result<Arc<dyn Router>> {
+//         let mut route_table_builder = RouteTableBuilder {
+//             table: Default::default(),
+//             module_idx: 0,
+//             service_idx: 0,
+//         };
+//         B::visit(&mut route_table_builder)?;
+//         let mut router = Self {
+//             direct_router: null_mut(),
+//             route_translation_table: route_table_builder.table,
+//         };
+//         let mut direct_router_ptr = unsafe { router.direct_router };
+//         let self_arc: Arc<dyn Router> = Arc::new(router);
+//         let direct_router = Box::new(DirectRouter::build::<B>(module_configs, Arc::downgrade(&self_arc))?);
+//         unsafe {
+//             *direct_router_ptr = direct_router;
+//         }
+//         Ok(self_arc)
+//     }
+// }
 
 
 impl Router for AppRouter {

@@ -1,5 +1,5 @@
 use crate::{AgentId, Context, ModuleId, ReadContext};
-use crate::routing::{Client, ClientFactory, ModuleServiceResolver, Service, ServiceHandler};
+use crate::routing::{Client, ClientConnection, ClientDescriptor, ClientFactory, ModuleServiceResolver, Service, ServiceDescriptor, ServiceHandler};
 
 mod handler;
 
@@ -21,8 +21,15 @@ pub trait Module: ModuleServiceResolver {
     fn new<F: ClientFactory>(config_bytes: &[u8], client_factory: &F) -> Self;
 }
 
+pub trait ModuleDyn {
+    fn new(&self, config_bytes: &[u8], client_conn: ClientConnection) -> Box<dyn ModuleServiceResolver>;
+    fn describe(&self) -> ModuleDescriptor;
+}
+
 pub struct ModuleDescriptor {
     pub config_type_name: String,
+    pub services: Vec<ServiceDescriptor>,
+    pub clients: Vec<ClientDescriptor>
 }
 
 pub trait DescribeModule {

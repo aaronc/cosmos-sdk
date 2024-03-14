@@ -14,7 +14,7 @@ use crate::module::Module;
 use crate::routing::Client;
 
 pub struct TestApp {
-    app_router: Arc<dyn Router>;
+    // app_router: Arc<dyn Router>;
 }
 
 impl TestApp {
