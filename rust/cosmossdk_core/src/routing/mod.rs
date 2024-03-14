@@ -1,18 +1,17 @@
 pub mod direct_router;
-pub mod dynamic_router;
 pub mod app_router;
 
 extern crate alloc;
 extern crate core;
 
-use alloc::sync::Arc;
+use core::any::Any;
 use crate::{AgentId, Code, error, Result, Context, ReadContext, ModuleId};
 use crate::id::Address;
 use crate::module::{ModuleContext, ModuleReadContext};
 
 // alternate designs
 pub trait ServiceHandler {
-    fn invoke(&self, method_id: u16, ctx: &mut ContextData, call_data: &mut CallArgs) -> Result<()>;
+    fn invoke(&self, method_id: u32, ctx: &mut ContextData, call_data: &mut CallArgs) -> Result<()>;
 }
 
 pub trait Service: ServiceHandler {
@@ -28,7 +27,7 @@ pub trait ServiceDescriptorHelper {}
 // fn route_i2(&self, method_id: u64, ctx: &mut Context, p1: &[u8], p2: &[u8]) -> Result<()> { Err(Unimplemented.into()) }
 // }
 
-pub trait Router {
+pub trait Router: Any {
     fn invoke(&self, call_data: &mut CallData) -> Result<()>;
 }
 
@@ -81,20 +80,43 @@ pub enum ClientDescriptor {
 
 pub trait ClientDescriptorHelper {}
 
-pub struct ServiceDescriptor {
-    service_type: ServiceType,
-    id: String,
+// pub struct ServiceDescriptor {
+//     service_type: ServiceType,
+//     id: String,
+// }
+//
+// pub enum ServiceType {
+//     ProtoService,
+//     ProtoServiceMethod,
+//     ProtoMessage,
+//     ProtoMessageBefore,
+//     ProtoMessageAfter,
+//     ProtoEventHook,
+//     Store,
+// }
+
+pub enum ServiceDescriptor {
+    ProtoService(ProtoSericeDescriptor)
 }
 
-pub enum ServiceType {
-    ProtoService,
-    ProtoServiceMethod,
-    ProtoMessage,
-    ProtoMessageBefore,
-    ProtoMessageAfter,
-    ProtoEventHook,
-    Store,
+pub struct ProtoSericeDescriptor {
+    name: String,
+    encoding: Encoding,
+    methods: Vec<ProtoMethodDescriptor>
 }
+
+pub struct ProtoMethodDescriptor {
+    name: String,
+    input_type: String,
+}
+
+#[derive(Clone, Debug)]
+pub enum Encoding {
+    Other,
+    ProtoBinary,
+    ZeroPB
+}
+
 
 #[repr(C)]
 struct CallData {
@@ -162,8 +184,8 @@ enum RouteInfo {
 #[derive(Clone)]
 struct LocalRouteInfo {
     module_index: rend::u32_le,
-    service_index: rend::u16_le,
-    method_index: rend::u16_le,
+    service_index: rend::u32_le,
+    method_index: rend::u32_le,
 }
 
 #[repr(C)]
@@ -173,7 +195,7 @@ struct BytesPtr {
 }
 
 pub trait ModuleServiceResolver {
-    fn resolve_service_handler(&self, index: u16) -> &dyn ServiceHandler;
+    fn resolve_service_handler(&self, index: u32) -> Option<&dyn ServiceHandler>;
 }
 
 #[repr(C)]

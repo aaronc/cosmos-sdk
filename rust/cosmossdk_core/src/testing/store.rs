@@ -97,68 +97,68 @@ impl TestStore {
     }
 }
 
-impl StoreServer for TestStore {
-    fn get(&self, ctx: &mut Context, caller: &AgentId, key: &[u8]) -> Result<Vec<u8>> {
-        let key = prepend_id(caller, key);
-        let data = self.data.read().unwrap();
-        if let Some(value) = data.writes.get(&key) {
-            if let Some(value) = value {
-                return Ok(value.clone().into());
-           } else {
-                return Err(Code::NotFound.into());
-            }
-        } else {
-            if let Some(value) = data.committed.get(&key) {
-                return Ok(value.clone().into());
-            } else {
-                return Err(Code::NotFound.into());
-            }
-        }
-    }
-
-    fn set(&self, ctx: &mut Context, caller: &AgentId, key: &[u8], value: &[u8]) -> Result<()> {
-        let key = prepend_id(caller, key);
-        let mut data = self.data.write().unwrap();
-        data.writes.insert(key, Some(value.to_vec()));
-        Ok(())
-    }
-
-    fn delete(&self, ctx: &mut Context, caller: &AgentId, key: &[u8]) -> Result<()> {
-        let key = prepend_id(caller, key);
-        let mut data = self.data.write().unwrap();
-        data.writes.insert(key, None);
-        Ok(())
-    }
-
-    fn has(&self, ctx: &mut Context, caller: &AgentId, key: &[u8]) -> Result<bool> {
-        let key = prepend_id(caller, key);
-        let data = self.data.read().unwrap();
-        if let Some(value) = data.writes.get(&key) {
-            return Ok(value.is_some());
-        } else {
-            return Ok(data.committed.contains_key(&key));
-        }
-    }
-
-    fn get_stale(&self, ctx: &mut Context, caller: &AgentId, key: &[u8]) -> Result<Vec<u8>> {
-        let key = prepend_id(caller, key);
-        let data = self.data.read().unwrap();
-        if let Some(value) = data.committed.get(&key) {
-            return Ok(value.clone().into());
-        } else {
-            return Err(Code::NotFound.into());
-        }
-    }
-
-    fn set_lazy<F: FnOnce(Option<&[u8]>) -> Option<Vec<u8>>>(&self, ctx: &mut Context, caller: &AgentId, key: &[u8], value_fn: F) -> Result<()> {
-        // let key = prepend_id(caller, key);
-        // let mut data = self.data.write().unwrap();
-        // if let Some(value) = data.lazy.get_mut(&key) {
-        //     value.push(Box::new(value_fn));
-        // } else {
-        //     data.lazy.insert(key, vec![Box::new(value_fn)]);
-        // }
-        // Ok(())
-        todo!()
-    }
-}
+// impl StoreServer for TestStore {
+    // fn get(&self, ctx: &mut Context, caller: &AgentId, key: &[u8]) -> Result<Vec<u8>> {
+    //     let key = prepend_id(caller, key);
+    //     let data = self.data.read().unwrap();
+    //     if let Some(value) = data.writes.get(&key) {
+    //         if let Some(value) = value {
+    //             return Ok(value.clone().into());
+    //        } else {
+    //             return Err(Code::NotFound.into());
+    //         }
+    //     } else {
+    //         if let Some(value) = data.committed.get(&key) {
+    //             return Ok(value.clone().into());
+    //         } else {
+    //             return Err(Code::NotFound.into());
+    //         }
+    //     }
+    // }
+    //
+    // fn set(&self, ctx: &mut Context, caller: &AgentId, key: &[u8], value: &[u8]) -> Result<()> {
+    //     let key = prepend_id(caller, key);
+    //     let mut data = self.data.write().unwrap();
+    //     data.writes.insert(key, Some(value.to_vec()));
+    //     Ok(())
+    // }
+    //
+    // fn delete(&self, ctx: &mut Context, caller: &AgentId, key: &[u8]) -> Result<()> {
+    //     let key = prepend_id(caller, key);
+    //     let mut data = self.data.write().unwrap();
+    //     data.writes.insert(key, None);
+    //     Ok(())
+    // }
+    //
+    // fn has(&self, ctx: &mut Context, caller: &AgentId, key: &[u8]) -> Result<bool> {
+    //     let key = prepend_id(caller, key);
+    //     let data = self.data.read().unwrap();
+    //     if let Some(value) = data.writes.get(&key) {
+    //         return Ok(value.is_some());
+    //     } else {
+    //         return Ok(data.committed.contains_key(&key));
+    //     }
+    // }
+    //
+    // fn get_stale(&self, ctx: &mut Context, caller: &AgentId, key: &[u8]) -> Result<Vec<u8>> {
+    //     let key = prepend_id(caller, key);
+    //     let data = self.data.read().unwrap();
+    //     if let Some(value) = data.committed.get(&key) {
+    //         return Ok(value.clone().into());
+    //     } else {
+    //         return Err(Code::NotFound.into());
+    //     }
+    // }
+    //
+    // fn set_lazy<F: FnOnce(Option<&[u8]>) -> Option<Vec<u8>>>(&self, ctx: &mut Context, caller: &AgentId, key: &[u8], value_fn: F) -> Result<()> {
+    //     // let key = prepend_id(caller, key);
+    //     // let mut data = self.data.write().unwrap();
+    //     // if let Some(value) = data.lazy.get_mut(&key) {
+    //     //     value.push(Box::new(value_fn));
+    //     // } else {
+    //     //     data.lazy.insert(key, vec![Box::new(value_fn)]);
+    //     // }
+    //     // Ok(())
+    //     todo!()
+    // }
+// }

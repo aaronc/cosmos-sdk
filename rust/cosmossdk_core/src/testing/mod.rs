@@ -6,15 +6,15 @@ mod store;
 use alloc::collections::BTreeMap;
 use alloc::string::String;
 use core::default::Default;
-use crate::{Context, Module};
+use crate::{Context};
 
 pub use store::{TestStore};
 use crate::id::AgentId;
+use crate::module::Module;
 use crate::routing::Client;
 
 pub struct TestApp {
-    client_routes: BTreeMap<u64, String>,
-    server_routes: BTreeMap<String, u64>,
+    app_router: Arc<dyn Router>;
 }
 
 impl TestApp {

@@ -1,6 +1,6 @@
 use cosmossdk_core::mem::Ref;
 use cosmossdk_core::Result;
-use crate::buffer::{Reader, Writer};
+use crate::buffer::{Writer};
 
 mod tuple;
 mod bytes;
@@ -10,13 +10,13 @@ mod bool;
 mod str;
 
 pub trait KeyCodec {
-    type Borrowed<'a>;
+    type Borrowed<'a>: 'a;
     type AsRef<'a>;
     // type Keys<'a>;
 
     fn encode<B: Writer>(buf: &mut B, key: Self::Borrowed<'_>) -> Result<()>;
 
-    fn decode<'a, B: Reader>(buf: &'a mut B) -> Result<Self::Borrowed<'a>>;
+    fn decode<'a>(buf: &'a [u8]) -> Result<(Self::Borrowed<'a>, usize)>;
 
     fn size_hint(key: &Self::Borrowed<'_>) -> Option<usize> { None }
 
@@ -28,7 +28,7 @@ pub trait KeyPartCodec: KeyCodec {
         Self::encode(buf, key)
     }
 
-    fn decode_non_terminal<'a, B: Reader>(buf: &'a mut B) -> Result<Self::Borrowed<'a>> {
+    fn decode_non_terminal<'a>(buf: &'a [u8]) -> Result<(Self::Borrowed<'a>, usize)> {
         Self::decode(buf)
     }
 }

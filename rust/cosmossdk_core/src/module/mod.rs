@@ -1,5 +1,5 @@
 use crate::{AgentId, Context, ModuleId, ReadContext};
-use crate::routing::{Client, ClientFactory, ModuleServiceResolver, ServiceHandler};
+use crate::routing::{Client, ClientFactory, ModuleServiceResolver, Service, ServiceHandler};
 
 mod handler;
 
@@ -26,6 +26,6 @@ pub struct ModuleDescriptor {
 }
 
 pub trait DescribeModule {
-    fn describe_service<T: ServiceHandler>();
-    fn describe_client<T: Client>();
+    fn describe_service<T: Service>(&mut self);
+    fn describe_client<T: Client>(&mut self);
 }
