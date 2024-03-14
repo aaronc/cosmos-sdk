@@ -11,7 +11,7 @@ use crate::module::{ModuleContext, ModuleReadContext};
 
 // alternate designs
 pub trait ServiceHandler {
-    fn invoke(&self, method_id: u32, ctx: &mut ContextData, call_data: &mut CallArgs) -> Result<()>;
+    fn invoke(&self, method_id: u32, ctx: &ContextData, call_data: &mut CallArgs) -> Result<()>;
 }
 
 pub trait Service: ServiceHandler {
@@ -48,7 +48,7 @@ impl ClientConnection {
         }
     }
 
-    pub fn invoke(&self, ctx: &mut ContextData, args: &mut ClientCallArgs) -> Result<()> {
+    pub fn invoke(&self, ctx: &ContextData, args: &mut ClientCallArgs) -> Result<()> {
         args.0.route_info = self.default_route_info.clone();
         args.0.context.id = ctx.id;
         args.0.context.source = ctx.target.clone();

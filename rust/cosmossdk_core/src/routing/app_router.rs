@@ -5,7 +5,7 @@ use alloc::collections::BTreeMap;
 use std::ptr::null_mut;
 use crate::bundle::{ModuleBundle, ModuleBundleVisitor};
 use crate::module::{DescribeModule, Module, ModuleDyn};
-use crate::routing::direct_router::DirectRouter;
+use crate::routing::direct_router::{DirectRouter, DirectRouterBuilder};
 use crate::routing::{CallData, Client, ClientConnection, Encoding, LocalRouteInfo, RouteInfo, Router, Service, ServiceDescriptor, ServiceDescriptorHelper, ServiceHandler};
 
 pub struct AppRouter {
@@ -32,7 +32,7 @@ enum ResolvedRouteAddress {
 
 pub struct AppRouterBuilder {
     route_builder: RouteTableBuilder,
-    direct_router: DirectRouter,
+    direct_router: DirectRouterBuilder,
 }
 
 impl AppRouterBuilder {
