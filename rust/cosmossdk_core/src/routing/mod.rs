@@ -1,20 +1,22 @@
 pub mod direct_router;
 pub mod app_router;
+mod context;
 
 extern crate alloc;
 extern crate core;
 
 use core::any::Any;
-use crate::{AgentId, Code, error, Result, Context, ReadContext, ModuleId};
+use crate::{AgentId, Code, error, Result, Context, ReadContext, ModuleId, ServerRequest};
 use crate::id::Address;
 use crate::module::{ModuleContext, ModuleReadContext};
 
 // alternate designs
-pub trait ServiceHandler {
-    fn invoke(&self, method_id: u32, ctx: &ContextData, call_data: &mut CallArgs) -> Result<()>;
+pub trait ServiceHandler<R> {
+    // fn invoke(&self, method_id: u32, ctx: &ContextData, call_data: &mut CallArgs) -> Result<()>;
+    fn invoke(&self, method_id: u32, req: &mut R) -> Result<()>;
 }
 
-pub trait Service: ServiceHandler {
+pub trait Service<R>: ServiceHandler<R> {
     fn describe(helper: &mut dyn ServiceDescriptorHelper) -> ServiceDescriptor;
 }
 
@@ -29,33 +31,6 @@ pub trait ServiceDescriptorHelper {}
 
 pub trait Router: Any {
     fn invoke(&self, call_data: &mut CallData) -> Result<()>;
-}
-
-pub trait ClientFactory {
-    fn new<T: Client>(&self) -> T;
-}
-
-pub struct ClientConnection {
-    router: alloc::sync::Weak<dyn Router>,
-    default_route_info: RouteInfo,
-}
-
-impl ClientConnection {
-    pub fn new(router: alloc::sync::Weak<dyn Router>, default_route_info: RouteInfo) -> Self {
-        ClientConnection {
-            router,
-            default_route_info,
-        }
-    }
-
-    pub fn invoke<Ctx: ReadContext>(&self, ctx: &Ctx, args: &mut ClientCallArgs) -> Result<()> {
-        args.0.context.id = ctx.id();
-        args.0.context.source = ctx.self_id().clone();
-        let router = &self.router.upgrade().ok_or(
-            error!(Code::Internal, "Router has been dropped")
-        )?;
-        router.invoke(&mut args.0)
-    }
 }
 
 pub trait Client {
@@ -240,18 +215,28 @@ pub struct ContextData {
     _padding: [u8; 508], // extra space for future use and makes context 1024 bytes
 }
 
-impl ReadContext for ContextData {
-    fn id(&self) -> u64 {
-        self.id
-    }
-
-    fn self_id(&self) -> &AgentId {
-        &self.target
-    }
-}
-
-impl Context for ContextData {
-    fn caller_id(&self) -> &AgentId {
-        &self.source
-    }
-}
+// impl ReadContext for ContextData {
+//     type R = Request;
+//
+//     fn id(&self) -> u64 {
+//         self.id
+//     }
+//
+//     fn self_id(&self) -> &AgentId {
+//         &self.target
+//     }
+//
+//     fn new_request(&self) -> Self::R {
+//         todo!()
+//     }
+//
+//     fn invoke(&self, req: &mut Self::R) -> Result<()> {
+//         todo!()
+//     }
+// }
+//
+// impl Context for ContextData {
+//     fn caller_id(&self) -> &AgentId {
+//         &self.source
+//     }
+// }

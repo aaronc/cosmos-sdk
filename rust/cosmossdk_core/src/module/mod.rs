@@ -1,5 +1,5 @@
 use crate::{AgentId, Context, ModuleId, ReadContext};
-use crate::routing::{Client, ClientConnection, ClientDescriptor, ClientFactory, ModuleServiceResolver, Service, ServiceDescriptor, ServiceHandler};
+use crate::routing::{Client, ClientDescriptor, ModuleServiceResolver, Service, ServiceDescriptor, ServiceHandler};
 
 mod handler;
 
@@ -18,11 +18,11 @@ pub trait Module: ModuleServiceResolver {
 
     // fn describe(descriptor: &mut crate::types::cosmos::core::v1alpha1::bundle::ModuleInitDescriptor) -> zeropb::Result<()>;
     // fn route(&self, route_id: u64, ctx: &mut Context, req: *mut u8, res: *mut *mut u8) -> Code;
-    fn new<F: ClientFactory>(config_bytes: &[u8], client_factory: &F) -> Self;
+    fn new(config_bytes: &[u8]) -> Self;
 }
 
 pub trait ModuleDyn {
-    fn new(&self, config_bytes: &[u8], client_conn: ClientConnection) -> Box<dyn ModuleServiceResolver>;
+    fn new(&self, config_bytes: &[u8]) -> Box<dyn ModuleServiceResolver>;
     fn describe(&self) -> ModuleDescriptor;
 }
 

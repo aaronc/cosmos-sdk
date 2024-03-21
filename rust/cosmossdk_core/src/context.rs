@@ -2,7 +2,7 @@ use crate::{Address, AgentId};
 
 /// Specifies the context for read-only calls.
 pub trait ReadContext {
-    type R: Request;
+    type R: ClientRequest;
 
     /// Returns the unique identifier for the call that is scoped at the app level
     /// as either a user initiated transaction or an application lifecycle callback.
@@ -35,11 +35,11 @@ pub trait Context: ReadContext {
 }
 
 /// A request that can be used to make client calls from the context.
-pub trait Request {
+pub trait ClientRequest {
     type P: Param;
 
     /// Sets the fully qualified method name for the request.
-    fn set_target_method(&mut self, route: &str);
+    fn set_target_method(&mut self, route: &str) -> crate::Result<()>;
 
     /// Sets the target account address for the request when this call is a calling
     /// an account method. This method should not be called when calling a module method.
@@ -53,4 +53,15 @@ pub trait Request {
 pub trait Param {
     fn bytes(&self) -> &[u8];
     fn set_bytes<'a>(&'a mut self, bytes: &'a [u8]);
+}
+
+pub trait ServerRequest {
+    type Ctx: Context;
+    type P: Param;
+
+    fn context(&self) -> &Self::Ctx;
+
+    fn in_params(&self) -> &[Self::P; 2];
+
+    fn out_params(&mut self) -> &mut [Self::P; 2];
 }

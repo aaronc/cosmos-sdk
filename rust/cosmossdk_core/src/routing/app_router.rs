@@ -5,11 +5,11 @@ use alloc::collections::BTreeMap;
 use std::ptr::null_mut;
 use crate::bundle::{ModuleBundle, ModuleBundleVisitor};
 use crate::module::{DescribeModule, Module, ModuleDyn};
-use crate::routing::direct_router::{DirectRouter, DirectRouterBuilder};
-use crate::routing::{CallData, Client, ClientConnection, Encoding, LocalRouteInfo, RouteInfo, Router, Service, ServiceDescriptor, ServiceDescriptorHelper, ServiceHandler};
+use crate::routing::direct_router::{DirectRouter};
+use crate::routing::{CallData, Client, Encoding, LocalRouteInfo, RouteInfo, Router, Service, ServiceDescriptor, ServiceDescriptorHelper, ServiceHandler};
 
 pub struct AppRouter {
-    direct_router: *mut Box<DirectRouter>,
+    direct_router: DirectRouter,
     route_translation_table: BTreeMap<String, ResolvedRoute>,
     event_hooks: BTreeMap<String, Vec<ResolvedRouteInfo>>,
     pub module_idx: u32,
@@ -33,13 +33,12 @@ enum ResolvedRouteAddress {
 
 pub struct AppRouterBuilder {
     route_builder: RouteTableBuilder,
-    direct_router: DirectRouterBuilder,
 }
 
 impl AppRouterBuilder {
     pub fn new() -> Self{
         let mut router = AppRouter {
-            direct_router: null_mut(),
+            direct_router: Default::default(),
             route_translation_table: Default::default(),
             event_hooks: Default::default(),
             module_idx: 0,

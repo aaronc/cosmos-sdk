@@ -2,35 +2,32 @@ use core::borrow::Borrow;
 use crate::{Code, err};
 use crate::error::Error;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 #[repr(u8)]
 pub enum AgentId {
+    #[default]
+    Unknown,
     Module(ModuleId),
     Account(Address),
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 #[repr(C)]
 pub struct Address {
     len: u8,
-    data: [u8; 256],
-}
-
-impl Default for Address {
-    fn default() -> Self {
-        Address { len: 0, data: [0; 256] }
-    }
+    data: [u8; 255],
 }
 
 impl Address {
-    fn new(s: &[u8]) -> crate::Result<Self> {
+    pub fn new(s: &[u8]) -> crate::Result<Self> {
         let len = s.len();
-        if len > 256 {
+        if len > 255 {
             return err!(Code::InvalidArgument, "address can be at most 256 bytes, received {} byte", len);
         }
-        let mut data = [0; 256];
-        data[0..len].copy_from_slice(s);
-        Ok(Address { len: len as u8, data })
+        let mut addr = Address::default();
+        addr.data[0..len].copy_from_slice(s);
+        addr.len = len as u8;
+        Ok(addr)
     }
 }
 
@@ -60,7 +57,7 @@ impl Into<Vec<u8>> for &Address {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct ModuleId(Address);
 
 impl ModuleId {

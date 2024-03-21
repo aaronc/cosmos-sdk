@@ -2,21 +2,19 @@ extern crate core;
 extern crate alloc;
 use core::ops::FnOnce;
 use core::todo;
-use super::{Result, Code, ReadContext, Context};
+use super::{Result, Code, ReadContext, Context, ClientRequest, Param};
 use core::result::{Result::{Err, Ok}};
 use core::option::{Option};
 use core::option::Option::{Some, None};
 use crate::id::AgentId;
-use crate::routing::{CallTarget, Client, ClientCallArgs, ClientConnection, ClientDescriptor, ClientDescriptorHelper};
+use crate::routing::{CallTarget, Client, ClientCallArgs, ClientDescriptor, ClientDescriptorHelper};
 use alloc::vec::Vec;
 use crate::mem::{BytesRef, Ref};
 
 #[cfg(feature="alloc")]
 use crate::sync::{Completer, Completer1, PrepareContext};
 
-pub struct StoreClient {
-    conn: ClientConnection
-}
+pub struct StoreClient;
 
 pub trait StoreServer {
     fn get<Ctx: ReadContext>(&self, ctx: &Ctx, key: &[u8]) -> Result<Vec<u8>>;
@@ -75,28 +73,23 @@ impl Client for StoreClient {
     fn describe(helper: &mut dyn ClientDescriptorHelper) -> ClientDescriptor {
         ClientDescriptor::StoreClient{ordered: false}
     }
-
-    fn new(conn: ClientConnection) -> Self {
-        todo!()
-    }
 }
 
 impl StoreClient {
     pub fn get<Ctx: ReadContext>(&self, ctx: &Ctx, key: &[u8]) -> Result<Vec<u8>> {
-        let mut call_args = ClientCallArgs::default();
-        call_args.set_dynamic_route_target(CallTarget::StoreMethod("get".to_string()));
-        call_args.set_in1(key);
-        self.conn.invoke(ctx, &mut call_args)?;
-        // TODO figure out how to pass BytesRef
-        Ok(call_args.out1().to_vec())
+        let mut req = ctx.new_request();
+        req.set_target_method("store/get");
+        req.in_params()[0].set_bytes(key);
+        ctx.invoke(&mut req)?;
+        Ok(req.out_params()[0].bytes().to_vec())
     }
 
     pub fn set<Ctx: Context>(&self, ctx: &Ctx, key: &[u8], value: &[u8]) -> Result<()> {
-        let mut call_args = ClientCallArgs::default();
-        call_args.set_dynamic_route_target(CallTarget::StoreMethod("set".to_string()));
-        call_args.set_in1(key);
-        call_args.set_in2(value);
-        self.conn.invoke(ctx, &mut call_args)
+        let mut req = ctx.new_request();
+        req.set_target_method("store/set");
+        req.in_params()[0].set_bytes(key);
+        req.in_params()[1].set_bytes(value);
+        ctx.invoke(&mut req)
     }
 
     fn delete<Ctx: Context>(&self, ctx: &mut Ctx, key: &[u8]) -> Result<()> {
