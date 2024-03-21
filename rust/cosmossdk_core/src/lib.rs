@@ -27,7 +27,7 @@ pub mod encoding;
 pub mod account;
 pub mod interface;
 pub mod mem;
-mod parallel;
+// mod parallel;
 
 pub use code::*;
 pub use context::*;

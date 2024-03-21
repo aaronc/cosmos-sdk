@@ -23,17 +23,6 @@ pub trait KeyCodec {
     fn as_ref<'a>(borrowed: Self::Borrowed<'a>, r: Ref<'a, &'a [u8]>) -> Self::AsRef<'a>;
 }
 
-pub trait KeyPartCodec: KeyCodec {
-    fn encode_non_terminal<B: Writer>(buf: &mut B, key: Self::Borrowed<'_>) -> Result<()> {
-        Self::encode(buf, key)
-    }
-
-    fn decode_non_terminal<'a>(buf: &'a [u8]) -> Result<(Self::Borrowed<'a>, usize)> {
-        Self::decode(buf)
-    }
-}
-
-
 pub trait PrefixKey<Key> {}
 
 impl<Key> PrefixKey<Key> for Key {}

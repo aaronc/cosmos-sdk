@@ -7,9 +7,9 @@ use core::result::{Result::{Err, Ok}};
 use core::option::{Option};
 use core::option::Option::{Some, None};
 use crate::id::AgentId;
-use crate::routing::{Client, ClientConnection, ClientDescriptor, ClientDescriptorHelper};
+use crate::routing::{CallTarget, Client, ClientCallArgs, ClientConnection, ClientDescriptor, ClientDescriptorHelper};
 use alloc::vec::Vec;
-use crate::mem::Ref;
+use crate::mem::{BytesRef, Ref};
 
 #[cfg(feature="alloc")]
 use crate::sync::{Completer, Completer1, PrepareContext};
@@ -82,14 +82,21 @@ impl Client for StoreClient {
 }
 
 impl StoreClient {
-    pub fn get<'a>(&self, ctx: &dyn ReadContext, key: &[u8]) -> Result<Ref<'a, &'a [u8]>> {
-        // self.conn.route_io(self.route_id & 0x1, ctx, key)
-        todo!()
+    pub fn get<Ctx: ReadContext>(&self, ctx: &Ctx, key: &[u8]) -> Result<Vec<u8>> {
+        let mut call_args = ClientCallArgs::default();
+        call_args.set_dynamic_route_target(CallTarget::StoreMethod("get".to_string()));
+        call_args.set_in1(key);
+        self.conn.invoke(ctx, &mut call_args)?;
+        // TODO figure out how to pass BytesRef
+        Ok(call_args.out1().to_vec())
     }
 
-    pub fn set(&self, ctx: &dyn Context, key: &[u8], value: &[u8]) -> Result<()> {
-        // self.conn.route_i2(self.route_id & 0x2, ctx, key, value)
-        todo!()
+    pub fn set<Ctx: Context>(&self, ctx: &Ctx, key: &[u8], value: &[u8]) -> Result<()> {
+        let mut call_args = ClientCallArgs::default();
+        call_args.set_dynamic_route_target(CallTarget::StoreMethod("set".to_string()));
+        call_args.set_in1(key);
+        call_args.set_in2(value);
+        self.conn.invoke(ctx, &mut call_args)
     }
 
     fn delete<Ctx: Context>(&self, ctx: &mut Ctx, key: &[u8]) -> Result<()> {

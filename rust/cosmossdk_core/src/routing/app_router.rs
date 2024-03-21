@@ -11,6 +11,7 @@ use crate::routing::{CallData, Client, ClientConnection, Encoding, LocalRouteInf
 pub struct AppRouter {
     direct_router: *mut Box<DirectRouter>,
     route_translation_table: BTreeMap<String, ResolvedRoute>,
+    event_hooks: BTreeMap<String, Vec<ResolvedRouteInfo>>,
     pub module_idx: u32,
     pub service_idx: u32,
 }
@@ -40,6 +41,7 @@ impl AppRouterBuilder {
         let mut router = AppRouter {
             direct_router: null_mut(),
             route_translation_table: Default::default(),
+            event_hooks: Default::default(),
             module_idx: 0,
             service_idx: 0,
         };

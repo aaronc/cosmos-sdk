@@ -10,7 +10,10 @@ pub use map::*;
 pub use item::*;
 pub use schema::*;
 
-// use dashu_int::UBig;
+use dashu_int::UBig;
+use cosmossdk_core::ReadContext;
+use crate::key_codec::KeyCodec;
+
 // use cosmossdk_core::{Address, Code, Context, ReadContext, Result};
 // use cosmossdk_core::mem::Ref;
 // use cosmossdk_core::routing::Client;
@@ -298,47 +301,47 @@ pub use schema::*;
 //     }
 // }
 //
-// pub struct UBigMap<K> {
-//     _k: std::marker::PhantomData<K>,
-// }
-//
-// impl<K: KeyCodec> UBigMap<K> {
-//     pub fn has(&self, ctx: &dyn ReadContext, key: K::In<'_>) -> cosmossdk_core::Result<bool> {
-//         todo!()
-//     }
-//
-//     pub fn read(&self, ctx: &dyn ReadContext, key: K::In<'_>) -> cosmossdk_core::Result<UBig> {
-//         todo!()
-//     }
-//
-//     pub fn delete(&self, ctx: &dyn Context, key: K::In<'_>) -> cosmossdk_core::Result<()> {
-//         todo!()
-//     }
-//
-//     pub fn safe_sub(&self, ctx: &dyn  Context, key: K::In<'_>, value: &UBig) -> cosmossdk_core::Result<UBig> {
-//         todo!()
-//     }
-//
-//     pub fn add(&self, ctx: &dyn Context, key: K::In<'_>, value: &UBig) -> cosmossdk_core::Result<UBig> {
-//         todo!()
-//     }
-//
-//     pub fn add_lazy(&self, ctx: &dyn Context, key: K::In<'_>, value: &UBig) {
-//         todo!()
-//     }
-//
-//     pub fn prepare_safe_sub(&self, ctx: &PrepareContext, key: K::In<'_>) -> Result<Completer1<&UBig, ()>> {
-//         todo!()
-//     }
-//
-//     pub fn prepare_add(&self, ctx: &PrepareContext, key: K::In<'_>) -> Result<Completer1<&UBig, ()>> {
-//         todo!()
-//     }
-//
-//     pub fn prepare_add_lazy(&self, ctx: &PrepareContext, key: K::In<'_>) -> Result<Completer1<&UBig, ()>> {
-//         todo!()
-//     }
-// }
+pub struct UBigMap<K> {
+    _k: std::marker::PhantomData<K>,
+}
+
+impl<K: KeyCodec> UBigMap<K> {
+    // pub fn has(&self, ctx: &dyn ReadContext, key: K::In<'_>) -> cosmossdk_core::Result<bool> {
+    //     todo!()
+    // }
+    //
+    pub fn get<Ctx: ReadContext>(&self, ctx: &Ctx, key: K::In<'_>) -> cosmossdk_core::Result<UBig> {
+        todo!()
+    }
+
+    // pub fn delete(&self, ctx: &dyn Context, key: K::In<'_>) -> cosmossdk_core::Result<()> {
+    //     todo!()
+    // }
+    //
+    pub fn safe_sub(&self, ctx: &dyn  Context, key: K::In<'_>, value: &UBig) -> cosmossdk_core::Result<UBig> {
+        todo!()
+    }
+
+    pub fn add(&self, ctx: &dyn Context, key: K::In<'_>, value: &UBig) -> cosmossdk_core::Result<UBig> {
+        todo!()
+    }
+
+    pub fn add_lazy(&self, ctx: &dyn Context, key: K::In<'_>, value: &UBig) {
+        todo!()
+    }
+    //
+    // pub fn prepare_safe_sub(&self, ctx: &PrepareContext, key: K::In<'_>) -> Result<Completer1<&UBig, ()>> {
+    //     todo!()
+    // }
+    //
+    // pub fn prepare_add(&self, ctx: &PrepareContext, key: K::In<'_>) -> Result<Completer1<&UBig, ()>> {
+    //     todo!()
+    // }
+    //
+    // pub fn prepare_add_lazy(&self, ctx: &PrepareContext, key: K::In<'_>) -> Result<Completer1<&UBig, ()>> {
+    //     todo!()
+    // }
+}
 //
 // pub struct Index<K, V> {
 //     _k: std::marker::PhantomData<K>,

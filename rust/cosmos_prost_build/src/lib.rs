@@ -136,8 +136,6 @@ impl ServiceGen {
             pub trait #service_name {
                 #(#methods)*
             }
-
-
         })
     }
 }

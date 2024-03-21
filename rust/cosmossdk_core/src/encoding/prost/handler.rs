@@ -2,7 +2,7 @@ use crate::{AgentId, Code, Context, err, error, ModuleId, ReadContext};
 use crate::module::{MessageHandler, MessageHandlerWithResponse, ModuleContext, ModuleReadContext};
 use crate::routing::{CallArgs, ContextData, ServiceHandler};
 
-impl<Req: prost::Name + Default> ServiceHandler for dyn MessageHandler<Req> {
+impl<Req: prost::Name + Default> ServiceHandler for dyn MessageHandler<Req, ModuleContextData<'_>> {
     fn invoke(&self, _method_id: u32, ctx: &ContextData, args: &mut CallArgs) -> crate::Result<()> {
         debug_assert_eq!(_method_id, 0);
         let ctx = ModuleContextData::new(ctx)?;

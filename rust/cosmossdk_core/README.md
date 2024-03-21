@@ -124,3 +124,101 @@ Module bundles expose the following functions (shown with Rust syntax for clarit
 * `alloc` and `free` as necessary for the encodings used - for zeropb, these functions always return single 64kb buffers.
 
 The host must define a single import function, `invoke_host` which has a very similar signature to invoke above and is used by modules to call methods routed by the host. The module bundle may be able to route some messages to other modules in the bundle without using the host, but only in the case when the interaction can be properly authorized (which is easy with queries, possible with proposed "internal" services, and more complex with messages where authentication is done via the signer field).
+
+## Parallel/Async
+
+Imagine we had a store type with two additional operations: `get_stale` and `write_lazy`:
+```rust
+trait Store {
+  fn get(&self, ctx: &Context, key: &[u8]) -> Result<Vec<u8>>;
+  fn set(&self, ctx: &Context, key: &[u8], value: &[u8]) -> Result<()>;
+
+  /// Updates a value based on the current value synchronously and is a convenience wrapper around get and set.
+  /// This update operation can fail and that will cancel the operation.
+  fn update<F: FnOnce(&[u8]) -> Result<Vec<u8>>>(&self, &Context, key: &[u8], value_updater: F) -> Result<()>;
+
+
+  /// Retrieves a possible "stale" value for the key that will be deterministic and consistent
+  /// between all nodes but not necessarily the latest available value. Depending on the app, this
+  /// value will usually be the value from 1 or 2 blocks ago (in the case that it has changed). Use
+  /// this method only for configuration variables where the latest value is not essential as a
+  /// way to simplify concurrent operations.
+  fn get_stale(&self, ctx: &Context, key: &[u8]) -> Result<Vec<u8>>;
+
+  /// Updates a value lazily based on an updater function which takes the value at the time of the write
+  /// and returns the updated value. This should be used for operations which cannot fail and where the
+  /// updated value is not needed immediately. For instance, if we are adding coins to a pool of tokens,
+  /// we a) do not need the updated value immediately and b) the operation cannot fail because it is just
+  /// adding, not subtracting. Operations that can fail - such as subtraction - should use get and set.
+  /// The only way for the updater to fail is by panicking, halting the node and thus this operation should
+  /// only be used in such cases where an update failure would be catastrophic and should halt the node.
+  fn update_lazy<F: FnOnce(&[u8]) -> Vec<u8>>(&self, &Context, key: &[u8], value_updater: F) -> Result<()>;
+}
+```
+
+```rust
+
+#[derive(Module)]
+pub struct Bank {
+    state: BankSchema,
+}
+
+#[derive(Schema)]
+pub struct BankSchema {
+    #[map(prefix = 1, key(denom), value(enabled))]
+    send_enabled: Map<str, bool>,
+
+    #[map(prefix = 2, key(address, denom), value(balance))]
+    balances: Map<([u8], str), UBig>, // we use a UBig value meaning a big integer which cannot be negative
+}
+
+impl MsgServer for Bank {
+    fn send_lazy(&self, ctx: &Context, req: &MsgSendLazy) -> ::cosmossdk_core::Result<MsgSendLazyResponse> {
+        // checking send enabled uses last block state so no need to synchronize reads
+        if !self.state.send_enabled.get_stale(ctx, req.denom.borrow())? {
+            return err!(Code::Unavailable, "send disabled for denom {}", req.denom)
+        }
+
+        let amount = UBig::from_le_bytes(&req.amount);
+
+        // the subtraction operation is done synchronously using safe sub which fails if the balance is too low
+        self.state.balances.update(ctx, (req.from.borrow(), req.denom.borrow()), |balance| { balance.safe_sub(&amount) })?;
+      
+        // the addition operation is done lazily because it should be always safe to add and we don't need the updated value immediately
+        self.state.balances.update_lazy(ctx, (req.to.borrow(), req.denom.borrow()), |balance| { balance.add(&amount) })?;
+
+        ok()
+    }
+}
+```
+
+The above code demonstrates a synchronous API and any parallelization would need to be done optimistically by first running the operation
+in check tx mode, checking which keys get written and assuming the same keys will get written in deliver tx. In this case, optimistic
+execution would be fine but the developer doesn't have any guardrails to know whether they code is parallelizable or not. We could use
+an "async" API to get those guarantees where there are prepare and execute phases. The prepare phase can only access "stale" state
+and the inputs. The execute phase can only read or write values where access to those keys is "prepared" in the prepare phase.
+
+```rust
+impl AsyncMsgServer for Bank {
+fn send_lazy(&self, ctx: &PrepareContext, req: &MsgSendLazy) -> ::cosmossdk_core::Result<MsgSendLazyResponse> {
+  // we are allowed to do a stale read in the prepare phase and this doesn't introduce any load on the scheduler
+  if !self.state.send_enabled.get_stale(ctx, req.denom.borrow())? {
+      return err!(Code::Unavailable, "send disabled for denom {}", req.denom)
+  }
+
+  let amount = UBig::from_le_bytes(&req.amount);
+
+  // we just need to prepare the 
+  let update_from_balance = self.state.balances.prepare_update(&ctx, (req.from.borrow(), req.denom.borrow()))?;
+  
+  // exec consumes the prepare context so we can no longer call any prepare operations in the exec phase
+  ctx.exec(move |ctx| {
+    // we update the from balance using a safe sub in the exec phase
+    update_from_balance(|balance| { balance.safe_sub(&amount) })?;
+    
+    // the lazy add operation doesn't even need to be prepared because lazy writes don't affect scheduling
+    self.state.balances.update_lazy(&ctx, (req.to.borrow(), req.denom.borrow()), |balance| {balance.add(&amount)})?;
+  })
+}
+}
+```

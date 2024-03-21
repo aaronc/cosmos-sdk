@@ -10,8 +10,7 @@ use state_objects_macros::State;
 
 #[derive(Module)]
 #[module(name="example.bank.v1.BankModule",
-services(MsgServer, QueryServer)
-)]
+services(MsgServer, QueryServer))]
 pub struct Bank {
     state: BankState,
 

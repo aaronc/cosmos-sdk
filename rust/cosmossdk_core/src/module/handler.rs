@@ -1,8 +1,8 @@
 use crate::module::ModuleContext;
 use crate::Result;
 
-pub trait MessageHandler<Request> {
-    fn handle(&self, ctx: &dyn ModuleContext, req: &Request) -> Result<()>;
+pub trait MessageHandler<Request, Ctx: ModuleContext> {
+    fn handle(&self, ctx: &Ctx, req: &Request) -> Result<()>;
 }
 
 pub trait MessageHandlerWithResponse<Request, Response> {

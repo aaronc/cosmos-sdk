@@ -48,10 +48,9 @@ impl ClientConnection {
         }
     }
 
-    pub fn invoke(&self, ctx: &ContextData, args: &mut ClientCallArgs) -> Result<()> {
-        args.0.route_info = self.default_route_info.clone();
-        args.0.context.id = ctx.id;
-        args.0.context.source = ctx.target.clone();
+    pub fn invoke<Ctx: ReadContext>(&self, ctx: &Ctx, args: &mut ClientCallArgs) -> Result<()> {
+        args.0.context.id = ctx.id();
+        args.0.context.source = ctx.self_id().clone();
         let router = &self.router.upgrade().ok_or(
             error!(Code::Internal, "Router has been dropped")
         )?;
@@ -61,7 +60,6 @@ impl ClientConnection {
 
 pub trait Client {
     fn describe(helper: &mut dyn ClientDescriptorHelper) -> ClientDescriptor;
-    fn new(conn: ClientConnection) -> Self;
 }
 
 #[derive(Clone)]
@@ -127,6 +125,18 @@ struct CallData {
 
 pub struct ClientCallArgs(CallData);
 
+impl Default for ClientCallArgs {
+    fn default() -> Self {
+        unsafe {
+            let ptr = alloc::alloc::alloc(alloc::alloc::Layout::from_size_align(
+                core::mem::size_of::<CallData>(),
+                core::mem::align_of::<CallData>()
+            ).unwrap());
+            ClientCallArgs(core::ptr::read(ptr as *const CallData))
+        }
+    }
+}
+
 impl ClientCallArgs {
     pub fn set_target_address(&mut self, address: Address) {
         self.0.context.target = AgentId::Account(address);
@@ -134,6 +144,30 @@ impl ClientCallArgs {
 
     pub fn set_dynamic_route_target(&mut self, target: CallTarget) {
         self.0.route_info = RouteInfo::ClientTarget(target);
+    }
+
+    pub fn set_in1<'a>(&'a mut self, mut bytes: &'a [u8]) {
+        unsafe {
+            let len = bytes.len();
+            let ptr = bytes.as_ptr() as *mut u8;
+            self.0.data.in1 = BytesPtr { len, ptr };
+        }
+    }
+
+    pub fn set_in2<'a>(&'a mut self, mut bytes: &'a [u8]) {
+        unsafe {
+            let len = bytes.len();
+            let ptr = bytes.as_ptr() as *mut u8;
+            self.0.data.in2 = BytesPtr { len, ptr };
+        }
+    }
+
+    pub fn out1(&self) -> &[u8] {
+        unsafe { core::slice::from_raw_parts(self.0.data.out1.ptr, self.0.data.out1.len) }
+    }
+
+    pub fn out2(&self) -> &[u8] {
+        unsafe { core::slice::from_raw_parts(self.0.data.out2.ptr, self.0.data.out2.len) }
     }
 }
 
@@ -221,4 +255,3 @@ impl Context for ContextData {
         &self.source
     }
 }
-

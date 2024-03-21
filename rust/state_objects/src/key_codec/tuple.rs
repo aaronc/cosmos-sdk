@@ -1,7 +1,17 @@
 use cosmossdk_core::Result;
 use std::borrow::Borrow;
 use cosmossdk_core::mem::Ref;
-use crate::key_codec::{KeyCodec, KeyPartCodec, PrefixKey, Writer};
+use crate::key_codec::{KeyCodec, PrefixKey, Writer};
+
+pub trait KeyPartCodec: KeyCodec {
+    fn encode_non_terminal<B: Writer>(buf: &mut B, key: Self::Borrowed<'_>) -> Result<()> {
+        Self::encode(buf, key)
+    }
+
+    fn decode_non_terminal<'a>(buf: &'a [u8]) -> Result<(Self::Borrowed<'a>, usize)> {
+        Self::decode(buf)
+    }
+}
 
 impl<A: KeyPartCodec, B: KeyPartCodec> KeyCodec for (A, B) {
     type Borrowed<'a> = (A::Borrowed<'a>, B::Borrowed<'a>);
