@@ -7,12 +7,14 @@ import (
 
 	"github.com/cosmos/gogoproto/jsonpb"
 	"github.com/cosmos/gogoproto/proto"
+	protov2 "google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/runtime/protoiface"
 
-	"cosmossdk.io/core/registry"
 	"cosmossdk.io/x/tx/signing"
+
+	"cosmossdk.io/core/registry"
 )
 
 var protoMessageType = reflect.TypeOf((*proto.Message)(nil)).Elem()
@@ -91,11 +93,11 @@ type interfaceRegistry struct {
 	interfaceNames map[string]reflect.Type
 	interfaceImpls map[reflect.Type]interfaceMap
 	implInterfaces map[reflect.Type]reflect.Type
-	typeURLMap     map[string]reflect.Type
+	typeURLMap     map[string]any
 	signingCtx     *signing.Context
 }
 
-type interfaceMap = map[string]reflect.Type
+type interfaceMap = map[string]any
 
 // NewInterfaceRegistry returns a new InterfaceRegistry
 func NewInterfaceRegistry() InterfaceRegistry {
@@ -137,7 +139,7 @@ func NewInterfaceRegistryWithOptions(options InterfaceRegistryOptions) (Interfac
 		interfaceNames:    map[string]reflect.Type{},
 		interfaceImpls:    map[reflect.Type]interfaceMap{},
 		implInterfaces:    map[reflect.Type]reflect.Type{},
-		typeURLMap:        map[string]reflect.Type{},
+		typeURLMap:        map[string]any{},
 		ProtoFileResolver: options.ProtoFiles,
 		signingCtx:        signingCtx,
 	}, nil
@@ -198,7 +200,7 @@ func (registry *interfaceRegistry) registerImpl(iface interface{}, typeURL strin
 	ityp := reflect.TypeOf(iface).Elem()
 	imap, found := registry.interfaceImpls[ityp]
 	if !found {
-		imap = map[string]reflect.Type{}
+		imap = map[string]any{}
 	}
 
 	implType := reflect.TypeOf(impl)
@@ -224,8 +226,8 @@ func (registry *interfaceRegistry) registerImpl(iface interface{}, typeURL strin
 		)
 	}
 
-	imap[typeURL] = implType
-	registry.typeURLMap[typeURL] = implType
+	imap[typeURL] = impl
+	registry.typeURLMap[typeURL] = impl
 	registry.implInterfaces[implType] = ityp
 	registry.interfaceImpls[ityp] = imap
 }
@@ -288,19 +290,17 @@ func (registry *interfaceRegistry) UnpackAny(any *Any, iface interface{}) error 
 		return fmt.Errorf("no registered implementations of type %+v", rt)
 	}
 
-	typ, found := imap[any.TypeUrl]
+	impl, found := imap[any.TypeUrl]
 	if !found {
 		return fmt.Errorf("no concrete type registered for type URL %s against interface %T", any.TypeUrl, iface)
 	}
 
-	// Firstly check if the type implements proto.Message to avoid
-	// unnecessary invocations to reflect.New
-	if !typ.Implements(protoMessageType) {
-		return fmt.Errorf("can't proto unmarshal %T", typ)
+	msg, err := newMsg(impl)
+	if err != nil {
+		return err
 	}
 
-	msg := reflect.New(typ.Elem()).Interface().(proto.Message)
-	err := proto.Unmarshal(any.Value, msg)
+	err = proto.Unmarshal(any.Value, msg)
 	if err != nil {
 		return err
 	}
@@ -321,14 +321,29 @@ func (registry *interfaceRegistry) UnpackAny(any *Any, iface interface{}) error 
 // registered with RegisterInterface/RegisterImplementations, as well as those
 // registered with RegisterWithCustomTypeURL.
 func (registry *interfaceRegistry) Resolve(typeURL string) (proto.Message, error) {
-	typ, found := registry.typeURLMap[typeURL]
+	impl, found := registry.typeURLMap[typeURL]
 	if !found {
 		return nil, fmt.Errorf("unable to resolve type URL %s", typeURL)
 	}
 
+	return newMsg(impl)
+}
+
+func newMsg(impl any) (proto.Message, error) {
+	if m, ok := impl.(protov2.Message); ok {
+		return m.ProtoReflect().New().Interface().(proto.Message), nil
+	}
+
+	typ := reflect.TypeOf(impl)
+	// Firstly check if the type implements proto.Message to avoid
+	// unnecessary invocations to reflect.New
+	if !typ.Implements(protoMessageType) {
+		return nil, fmt.Errorf("can't proto unmarshal %T", typ)
+	}
+
 	msg, ok := reflect.New(typ.Elem()).Interface().(proto.Message)
 	if !ok {
-		return nil, fmt.Errorf("can't resolve type URL %s", typeURL)
+		return nil, fmt.Errorf("can't proto unmarshal %T", typ)
 	}
 
 	return msg, nil
