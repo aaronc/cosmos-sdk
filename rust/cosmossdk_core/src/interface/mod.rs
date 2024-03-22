@@ -1,5 +1,5 @@
 use crate::routing::ModuleServiceResolver;
 
-pub trait InterfaceImplementation: ModuleServiceResolver {
-    type Parameter;
-}
+// pub trait InterfaceImplementation: ModuleServiceResolver {
+//     type Parameter;
+// }

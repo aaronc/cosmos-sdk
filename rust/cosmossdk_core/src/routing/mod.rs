@@ -6,17 +6,18 @@ extern crate alloc;
 extern crate core;
 
 use core::any::Any;
-use crate::{AgentId, Code, error, Result, Context, ReadContext, ModuleId, ServerRequest};
+use crate::{AgentId, Code, error, Result, Context, ReadContext, ModuleId, ServerRequest, ServerRequestWrapper};
 use crate::id::Address;
 use crate::module::{ModuleContext, ModuleReadContext};
+pub use context::*;
 
 // alternate designs
-pub trait ServiceHandler<R> {
+pub trait ServiceHandler<ServerReq: ServerRequestWrapper> {
     // fn invoke(&self, method_id: u32, ctx: &ContextData, call_data: &mut CallArgs) -> Result<()>;
-    fn invoke(&self, method_id: u32, req: &mut R) -> Result<()>;
+    fn invoke(&self, method_id: u32, req: &mut ServerReq::R<'_>) -> Result<()>;
 }
 
-pub trait Service<R>: ServiceHandler<R> {
+pub trait Service<ServerReq: ServerRequestWrapper>: ServiceHandler<ServerReq> {
     fn describe(helper: &mut dyn ServiceDescriptorHelper) -> ServiceDescriptor;
 }
 
@@ -29,8 +30,8 @@ pub trait ServiceDescriptorHelper {}
 // fn route_i2(&self, method_id: u64, ctx: &mut Context, p1: &[u8], p2: &[u8]) -> Result<()> { Err(Unimplemented.into()) }
 // }
 
-pub trait Router: Any {
-    fn invoke(&self, call_data: &mut CallData) -> Result<()>;
+pub trait Router<ClientReq>: Any {
+    fn invoke(&self, call_data: &mut ClientReq) -> Result<()>;
 }
 
 pub trait Client {
@@ -203,8 +204,8 @@ struct BytesPtr {
     ptr: *mut u8, // TODO rend::u64_le
 }
 
-pub trait ModuleServiceResolver {
-    fn resolve_service_handler(&self, index: u32) -> Option<&dyn ServiceHandler>;
+pub trait ModuleServiceResolver<ServerReq> {
+    fn resolve_service_handler(&self, index: u32) -> Option<&dyn ServiceHandler<ServerReq>>;
 }
 
 #[repr(C)]

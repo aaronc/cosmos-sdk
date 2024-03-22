@@ -2,14 +2,15 @@ extern crate alloc;
 
 use alloc::sync::Arc;
 use alloc::collections::BTreeMap;
-use std::ptr::null_mut;
+use core::borrow::Borrow;
 use crate::bundle::{ModuleBundle, ModuleBundleVisitor};
+use crate::{err, error};
 use crate::module::{DescribeModule, Module, ModuleDyn};
 use crate::routing::direct_router::{DirectRouter};
-use crate::routing::{CallData, Client, Encoding, LocalRouteInfo, RouteInfo, Router, Service, ServiceDescriptor, ServiceDescriptorHelper, ServiceHandler};
+use crate::routing::{CallData, Client, ContextImpl, Encoding, LocalRouteInfo, RequestImpl, RouteInfo, Router, ServerRequestImpl, ServerRequestWrapperImpl, Service, ServiceDescriptor, ServiceDescriptorHelper, ServiceHandler};
 
 pub struct AppRouter {
-    direct_router: DirectRouter,
+    direct_router: DirectRouter<ServerRequestWrapperImpl>,
     route_translation_table: BTreeMap<String, ResolvedRoute>,
     event_hooks: BTreeMap<String, Vec<ResolvedRouteInfo>>,
     pub module_idx: u32,
@@ -37,13 +38,13 @@ pub struct AppRouterBuilder {
 
 impl AppRouterBuilder {
     pub fn new() -> Self{
-        let mut router = AppRouter {
-            direct_router: Default::default(),
-            route_translation_table: Default::default(),
-            event_hooks: Default::default(),
-            module_idx: 0,
-            service_idx: 0,
-        };
+        // let mut router = AppRouter {
+        //     direct_router: Default::default(),
+        //     route_translation_table: Default::default(),
+        //     event_hooks: Default::default(),
+        //     module_idx: 0,
+        //     service_idx: 0,
+        // };
         todo!()
         // let mut direct_router_ptr = unsafe { router.direct_router };
         // let self_arc: Arc<dyn Router> = Arc::new(router);
@@ -57,14 +58,14 @@ impl AppRouterBuilder {
 
     }
 
-    pub fn add_module<T: Module + 'static>(&mut self, config_bytes: &[u8]) {
-        self.direct_router.add_module::<T>(config_bytes);
-        todo!()
-    }
-
-    pub fn add_module_dyn(&mut self, m: &dyn ModuleDyn, config_bytes: &[u8]) {
-        todo!()
-    }
+    // pub fn add_module<T: Module + 'static>(&mut self, config_bytes: &[u8]) {
+    //     self.direct_router.add_module::<T>(config_bytes);
+    //     todo!()
+    // }
+    //
+    // pub fn add_module_dyn(&mut self, m: &dyn ModuleDyn, config_bytes: &[u8]) {
+    //     todo!()
+    // }
 }
 
 
@@ -91,16 +92,37 @@ impl AppRouterBuilder {
 // }
 
 
-impl Router for AppRouter {
-    fn invoke(&self, call_data: &mut CallData) -> crate::Result<()> {
-        match call_data.route_info {
-            RouteInfo::Empty => {}
-            RouteInfo::Local(_) => {}
-            RouteInfo::ClientToken(_) => {}
-            RouteInfo::ClientTarget(_) => {}
+impl Router<RequestImpl> for AppRouter {
+    fn invoke(&self, call_data: &mut RequestImpl) -> crate::Result<()> {
+        let route =self.route_translation_table.get("TODO").ok_or(
+            error!(crate::Code::Internal, "Method not found")
+        )?;
+        match route {
+            ResolvedRoute::ModuleMessage { handle, .. } => {
+                let Some(handle) = handle else {
+                  return err!(crate::Code::Internal, "Method not found")
+                };
+                match &handle.address {
+                    ResolvedRouteAddress::Local(local) => {
+                        let mut server_req = ServerRequestImpl {
+                            context_impl: ContextImpl{
+                                router: self,
+                                data: &call_data.context,
+                            },
+                            request: call_data,
+                        };
+
+                        self.direct_router.invoke(local, &mut server_req)
+                    }
+                    ResolvedRouteAddress::Remote { .. } => {
+                        todo!()
+                    }
+                }
+            }
+            ResolvedRoute::Query(_) => {
+                todo!()
+            }
         }
-        let direct_router = unsafe { &*self.direct_router };
-        direct_router.invoke(call_data)
     }
 }
 
@@ -120,30 +142,30 @@ impl ModuleBundleVisitor for RouteTableBuilder {
 }
 
 impl DescribeModule for RouteTableBuilder {
-    fn describe_service<T: Service>(&mut self) {
-        self.service_idx += 1;
-        match T::describe(self) {
-            ServiceDescriptor::ProtoService(svc) => {
-                let method_idx = 0;
-                for method in svc.methods {
-                    // TODO check for existing route
-                    let route = ResolvedRoute::ModuleMessage {
-                        pre: vec![],
-                        handle: Some(ResolvedRouteInfo {
-                            address: ResolvedRouteAddress::Local(LocalRouteInfo {
-                                module_index: self.module_idx.into(),
-                                service_index: self.service_idx.into(),
-                                method_index: method_idx.into(),
-                            }),
-                            encoding: svc.encoding.clone(),
-                        }),
-                        post: vec![],
-                    };
-                    self.table.insert(method.name, route);
-                }
-            }
-        }
-    }
+    // fn describe_service<T: Service>(&mut self) {
+    //     self.service_idx += 1;
+    //     match T::describe(self) {
+    //         ServiceDescriptor::ProtoService(svc) => {
+    //             let method_idx = 0;
+    //             for method in svc.methods {
+    //                 // TODO check for existing route
+    //                 let route = ResolvedRoute::ModuleMessage {
+    //                     pre: vec![],
+    //                     handle: Some(ResolvedRouteInfo {
+    //                         address: ResolvedRouteAddress::Local(LocalRouteInfo {
+    //                             module_index: self.module_idx.into(),
+    //                             service_index: self.service_idx.into(),
+    //                             method_index: method_idx.into(),
+    //                         }),
+    //                         encoding: svc.encoding.clone(),
+    //                     }),
+    //                     post: vec![],
+    //                 };
+    //                 self.table.insert(method.name, route);
+    //             }
+    //         }
+    //     }
+    // }
 
     fn describe_client<T: Client>(&mut self) {}
 }

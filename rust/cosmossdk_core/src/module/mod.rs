@@ -1,5 +1,5 @@
-use crate::{AgentId, Context, ModuleId, ReadContext};
-use crate::routing::{Client, ClientDescriptor, ModuleServiceResolver, Service, ServiceDescriptor, ServiceHandler};
+use crate::{AgentId, Context, ModuleId, ReadContext, ServerRequestWrapper};
+use crate::routing::{Client, ClientDescriptor, ModuleServiceResolver, ServerRequestImpl, ServerRequestWrapperImpl, Service, ServiceDescriptor, ServiceHandler};
 
 mod handler;
 
@@ -11,7 +11,20 @@ pub trait ModuleReadContext: ReadContext {
 
 pub trait ModuleContext: Context + ModuleReadContext {}
 
-pub trait Module: ModuleServiceResolver {
+//
+// impl <'a> ModuleContextData<'a> {
+//     pub fn new(context: &'a ContextData) -> crate::Result<Self> {
+//         let AgentId::Module(module_id) = &context.target else {
+//             return err!(Code::Internal, "ModuleContextData::new: target is not a module")
+//         };
+//         Ok(ModuleContextData {
+//             context,
+//             module_id,
+//         })
+//     }
+// }
+
+pub trait Module<R=ServerRequestWrapperImpl>: ModuleServiceResolver<R> {
     // type Config;
 
     fn describe<T: DescribeModule>(describe: &mut T) -> ModuleDescriptor;
@@ -21,8 +34,8 @@ pub trait Module: ModuleServiceResolver {
     fn new(config_bytes: &[u8]) -> Self;
 }
 
-pub trait ModuleDyn {
-    fn new(&self, config_bytes: &[u8]) -> Box<dyn ModuleServiceResolver>;
+pub trait ModuleDyn<R> {
+    fn new(&self, config_bytes: &[u8]) -> Box<dyn ModuleServiceResolver<R>>;
     fn describe(&self) -> ModuleDescriptor;
 }
 
@@ -33,6 +46,6 @@ pub struct ModuleDescriptor {
 }
 
 pub trait DescribeModule {
-    fn describe_service<T: Service>(&mut self);
+    // fn describe_service<T: Service>(&mut self);
     fn describe_client<T: Client>(&mut self);
 }

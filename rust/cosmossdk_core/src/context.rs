@@ -55,7 +55,7 @@ pub trait Param {
     fn set_bytes<'a>(&'a mut self, bytes: &'a [u8]);
 }
 
-pub trait ServerRequest {
+pub trait ServerRequest<'a> {
     type Ctx: Context;
     type P: Param;
 
@@ -64,4 +64,8 @@ pub trait ServerRequest {
     fn in_params(&self) -> &[Self::P; 2];
 
     fn out_params(&mut self) -> &mut [Self::P; 2];
+}
+
+pub trait ServerRequestWrapper {
+    type R<'a>: ServerRequest<'a>;
 }

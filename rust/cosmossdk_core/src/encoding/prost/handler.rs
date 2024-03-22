@@ -1,18 +1,18 @@
 use prost::Message;
-use crate::{AgentId, Code, Context, err, error, ModuleId, Param, ReadContext, ServerRequest};
+use crate::{AgentId, Code, Context, err, error, ModuleId, Param, ReadContext, ServerRequest, ServerRequestWrapper};
 use crate::module::{MessageHandler, MessageHandlerWithResponse, ModuleContext, ModuleReadContext};
-use crate::routing::{CallArgs, ContextData, ServiceHandler};
+use crate::routing::{CallArgs, ContextData, ContextImpl, ModuleContextImpl, ServerRequestImpl, ServerRequestWrapperImpl, ServiceHandler};
 
-impl<Req: prost::Name + Default, R: ServerRequest> ServiceHandler<R> for dyn MessageHandler<Req, R::Ctx> {
-    fn invoke(&self, _method_id: u32, sr: &mut R) -> crate::Result<()> {
+impl<Req: prost::Name + Default> ServiceHandler<ServerRequestWrapperImpl> for dyn MessageHandler<Req, ModuleContextImpl<'_>>
+{
+    fn invoke(&self, _method_id: u32, sr: &mut ServerRequestImpl) -> crate::Result<()> {
         debug_assert_eq!(_method_id, 0);
         let args = sr.in_params()[0].bytes();
         let req = Req::decode(args).map_err(|e| error!(Code::InvalidArgument, "failed to decode request: {}", e))?;
-        let res = self.handle(sr.context(), &req)?;
+        let context = ModuleContextImpl::new(sr.context())?;
+        let res = self.handle(&context, &req)?;
         sr.out_params().set_bytes(res.encode_to_vec());
         Ok(())
-        // let ctx = ModuleContextData::new(ctx)?;
-        // self.handle(&ctx, &marshal_service_req(args)?)
     }
 }
 
