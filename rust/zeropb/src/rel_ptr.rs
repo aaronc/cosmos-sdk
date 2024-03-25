@@ -1,4 +1,4 @@
-use cosmossdk_core::Code;
+use cosmos_result::Code;
 use crate::result::{err_code_raw, RawResult};
 
 pub(crate) const MAX_EXTENT: usize = 0x10000 - 2;

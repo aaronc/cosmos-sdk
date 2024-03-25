@@ -1,5 +1,5 @@
 use core::fmt::Debug;
-use cosmossdk_core::Code;
+use cosmos_result::Code;
 use crate::{Root, Str};
 
 pub struct Error {

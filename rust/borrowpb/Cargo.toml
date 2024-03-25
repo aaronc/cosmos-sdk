@@ -1,0 +1,15 @@
+[package]
+name = "borrowpb"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+cosmos_result = {path = "../cosmos_result"}
+integer-encoding = "4.0.0"
+protobuf = "3.4.0"
+num_enum = "0.7.2"
+heapless = "0.8.0"
+
+[dev-dependencies]
+prost = "0.12.3"
+zeropb = {path = "../zeropb"}

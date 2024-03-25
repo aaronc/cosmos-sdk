@@ -22,6 +22,10 @@ impl Str {
     pub fn new_writer(&mut self) -> RawResult<StrWriter> {
         self.ptr.new_writer().map(|bz| StrWriter { bz })
     }
+
+    pub fn as_str(&self) -> &str {
+        unsafe { from_utf8_unchecked(self.ptr.borrow()) }
+    }
 }
 
 impl<'a> Borrow<str> for Str {

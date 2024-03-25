@@ -1,6 +1,6 @@
 use crate::zerocopy::ZeroCopy;
 use core::marker::PhantomData;
-use cosmossdk_core::Code::InvalidArgument;
+use cosmos_result::Code::InvalidArgument;
 use crate::result::{err_code_raw, RawResult};
 
 #[repr(C)]

@@ -38,9 +38,9 @@ mod code;
 mod server;
 mod module_id;
 
-pub use client::{Client, Connection, connection_invoke};
+// pub use client::{Client, Connection, connection_invoke};
 
-pub use server::Server;
+// pub use server::Server;
 
 pub use result::{RawResult, Result, ok, err_code, err_msg};
 

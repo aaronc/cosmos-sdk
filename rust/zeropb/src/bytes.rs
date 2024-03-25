@@ -1,5 +1,5 @@
 use core::{borrow::Borrow, marker::PhantomData, ptr, slice::from_raw_parts};
-use cosmossdk_core::Code;
+use cosmos_result::Code;
 
 use crate::error::Error;
 use crate::rel_ptr::{alloc_rel_ptr, resolve_rel_ptr, resolve_start_extent, MAX_EXTENT};
