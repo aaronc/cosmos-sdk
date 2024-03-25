@@ -26,4 +26,8 @@ impl<'a> BytesWriter<'a> {
     pub fn written(&self) -> usize {
         self.buffer.len() - self.i
     }
+
+    pub fn result(self) -> &'a [u8] {
+        &self.buffer[self.i..]
+    }
 }

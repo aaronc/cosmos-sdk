@@ -72,8 +72,21 @@ impl std::error::Error for Error {}
 #[cfg(all(feature = "no_std", feature = "error_in_core"))]
 impl core::error::Error for Error {}
 
+// #[cfg(not(feature = "no_std"))]
+// impl <E> From<E> for Error
+//     where E: std::error::Error + Send + Sync + 'static,
+// {
+//
+//     fn from(value: E) -> Self {
+//         Error {
+//             code: Code::Unknown,
+//             message: value.to_string() // TODO use value.fmt
+//         }
+//     }
+// }
+
 #[macro_export]
-macro_rules! format_err {
+macro_rules! new_error {
     ($code:expr) => {
         $crate::Error::new($code)
     };
@@ -84,8 +97,11 @@ macro_rules! format_err {
 
 #[macro_export]
 macro_rules! bail {
+    ($code:expr) => {
+        return core::result::Result::Err($crate::Error::new($code));
+    };
     ($code:expr, $($arg:tt)*) => {
-        return core::result::Result::Err($crate::format_err!($code, $($arg)*));
+        return core::result::Result::Err($crate::new_error!($code, $($arg)*));
     };
 }
 
