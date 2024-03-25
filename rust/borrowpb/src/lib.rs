@@ -291,7 +291,8 @@ unsafe impl<'a> Value<'a> for Cow<'a, str> {
     fn decode(buf: &'a [u8]) -> Result<(Self, usize)> {
         let (len, read) = u64::decode(buf)?;
         let len = len as usize;
-        let s = std::str::from_utf8(&buf[read..read + len]).unwrap();
+        // TODO: is this safe??
+        let s = unsafe { core::str::from_utf8_unchecked(&buf[read..read + len]) };
         Ok((Cow::Borrowed(s), read + len))
     }
 }
@@ -434,6 +435,7 @@ mod tests {
         let res = buf.result();
         b.iter(|| {
             let (decoded, _) = MsgSend::decode_message(res).unwrap();
+            black_box(&decoded);
             black_box(format!("{:?}{:?}", decoded.from, decoded.to));
             let Repeated::Owned(coins) = decoded.coins else {
                 panic!("expected owned")
@@ -513,6 +515,7 @@ mod tests {
         let res = buf.result();
         b.iter(|| {
             let decoded = <ProstMsgSend as ::prost::Message>::decode(res).unwrap();
+            black_box(&decoded);
             black_box(format!("{}{}", decoded.from, decoded.to));
             for coin in decoded.amount {
                 black_box(format!("{}{}", coin.amount, coin.denom));
