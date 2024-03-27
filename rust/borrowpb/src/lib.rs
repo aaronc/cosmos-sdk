@@ -481,6 +481,24 @@ mod tests {
         });
     }
 
+    #[bench]
+    fn bench_prost_decode(b: &mut test::Bencher) {
+        let msg = msg_send1();
+
+        let mut bytes = vec![0; msg.message_size() * 2];
+        let mut buf = BytesWriter::new(&mut bytes);
+        msg.encode_message(&mut buf).unwrap();
+        let res = buf.result();
+        b.iter(|| {
+            let decoded = <ProstMsgSend as ::prost::Message>::decode(res).unwrap();
+            black_box(&decoded);
+            black_box(format!("{}{}", decoded.from, decoded.to));
+            for coin in decoded.amount {
+                black_box(format!("{}{}", coin.amount, coin.denom));
+            }
+        });
+    }
+
     fn zero1() -> zeropb::Root<ZeropbMsgSend> {
         let mut msg = zeropb::Root::<ZeropbMsgSend>::new();
         msg.from.set("bob").unwrap();
@@ -504,25 +522,6 @@ mod tests {
             black_box(zero1())
         })
     }
-
-    #[bench]
-    fn bench_prost_decode(b: &mut test::Bencher) {
-        let msg = msg_send1();
-
-        let mut bytes = vec![0; msg.message_size() * 2];
-        let mut buf = BytesWriter::new(&mut bytes);
-        msg.encode_message(&mut buf).unwrap();
-        let res = buf.result();
-        b.iter(|| {
-            let decoded = <ProstMsgSend as ::prost::Message>::decode(res).unwrap();
-            black_box(&decoded);
-            black_box(format!("{}{}", decoded.from, decoded.to));
-            for coin in decoded.amount {
-                black_box(format!("{}{}", coin.amount, coin.denom));
-            }
-        });
-    }
-
     #[test]
     fn test_zeropb() {
         let mut coin = zeropb::Root::<ZeropbCoin>::new();
