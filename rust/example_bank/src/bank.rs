@@ -14,11 +14,8 @@ services(MsgServer, QueryServer))]
 pub struct Bank {
     state: BankState,
 
-    #[module_config]
+    #[config]
     config: crate::example::bank::v1::BankModule,
-
-    #[module_id]
-    module_id: String,
 }
 
 #[derive(State)]

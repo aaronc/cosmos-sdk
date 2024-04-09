@@ -24,14 +24,22 @@ pub trait ModuleContext: Context + ModuleReadContext {}
 //     }
 // }
 
-pub trait Module<R=ServerRequestWrapperImpl>: ModuleServiceResolver<R> {
+pub trait ClientConfig {
+    fn service_supported(&self, service: &str) -> bool;
+    fn method_supported(&self, method: &str) -> bool;
+}
+
+pub trait ModuleInit {
+    fn new(config_bytes: &[u8], client_config: &dyn ClientConfig) -> Self;
+}
+
+pub trait Module<R=ServerRequestWrapperImpl>: ModuleServiceResolver<R> + ModuleInit {
     // type Config;
 
     fn describe<T: DescribeModule>(describe: &mut T) -> ModuleDescriptor;
 
     // fn describe(descriptor: &mut crate::types::cosmos::core::v1alpha1::bundle::ModuleInitDescriptor) -> zeropb::Result<()>;
     // fn route(&self, route_id: u64, ctx: &mut Context, req: *mut u8, res: *mut *mut u8) -> Code;
-    fn new(config_bytes: &[u8]) -> Self;
 }
 
 pub trait ModuleDyn<R> {

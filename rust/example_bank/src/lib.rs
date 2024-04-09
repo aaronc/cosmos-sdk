@@ -2,6 +2,7 @@ use cosmossdk_core::bundle::ModuleBundleVisitor;
 
 mod bank;
 mod escrow;
+mod bank2;
 
 include!("types/_includes.rs");
 static FILE_DESCRIPTOR_BYTES: &[u8] = include_bytes!("types/file_descriptor_set.bin");
