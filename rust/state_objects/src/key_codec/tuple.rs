@@ -1,9 +1,10 @@
 use cosmossdk_core::Result;
 use std::borrow::Borrow;
-use cosmossdk_core::mem::Ref;
+use crate::borrow::Ownable;
 use crate::key_codec::{KeyCodec, PrefixKey, Writer};
+use crate::dynamic::DynamicValue;
 
-pub trait KeyPartCodec: KeyCodec {
+pub trait KeyPartCodec: KeyCodec + ToOwned {
     fn encode_non_terminal<B: Writer>(buf: &mut B, key: Self::Borrowed<'_>) -> Result<()> {
         Self::encode(buf, key)
     }
@@ -11,12 +12,13 @@ pub trait KeyPartCodec: KeyCodec {
     fn decode_non_terminal<'a>(buf: &'a [u8]) -> Result<(Self::Borrowed<'a>, usize)> {
         Self::decode(buf)
     }
+
+    fn size_hint_non_terminal(key: Self::Borrowed<'_>) -> usize {
+        Self::size_hint(key)
+    }
 }
 
 impl<A: KeyPartCodec, B: KeyPartCodec> KeyCodec for (A, B) {
-    type Borrowed<'a> = (A::Borrowed<'a>, B::Borrowed<'a>);
-    type AsRef<'a> = Ref<'a, Self::Borrowed<'a>>;
-
     fn encode<Buf: Writer>(buf: &mut Buf, key: Self::Borrowed<'_>) -> cosmossdk_core::Result<()> {
         A::encode_non_terminal(buf, key.0)?;
         B::encode(buf, key.1)
@@ -28,12 +30,20 @@ impl<A: KeyPartCodec, B: KeyPartCodec> KeyCodec for (A, B) {
         Ok(((a, b), n))
     }
 
-    fn as_ref<'a>(borrowed: Self::Borrowed<'a>, r: Ref<'a, &'a [u8]>) -> Self::AsRef<'a> {
-        r.cast(borrowed)
+    fn size_hint(key: Self::Borrowed<'_>) -> usize {
+        A::size_hint_non_terminal(key.0) + B::size_hint(key.1)
+    }
+
+    fn to_dynamic(key: Self::Borrowed<'_>) -> DynamicValue {
+        todo!()
+    }
+
+    fn from_value(value: DynamicValue) -> Result<Self::Borrowed<'static>> {
+        todo!()
     }
 }
 
-// impl<A: KeyPartCodec, B: KeyPartCodec> PrefixKey<(A, B)> for (A, ) {}
+impl<A: KeyPartCodec, B: KeyPartCodec> PrefixKey<(A, B)> for (A, ) {}
 
 // impl<A: KeyPartCodec, B: KeyPartCodec, C: KeyPartCodec> KeyCodec for (A, B, C) {
 //     type Borrowed<'a> = (A::Borrowed<'a>, B::Borrowed<'a>, C::Borrowed<'a>);

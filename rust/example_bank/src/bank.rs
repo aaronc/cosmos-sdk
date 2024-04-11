@@ -1,5 +1,5 @@
 use dashu_int::UBig;
-use cosmossdk_core::{Code, Context, ok, err};
+use cosmossdk_core::{Code, Context, ok, err, Address};
 use cosmossdk_core::module::{Module, ModuleContext, ModuleReadContext};
 use state_objects::{Index, Map, UBigMap};
 use crate::example::bank::v1::{InternalSendLazy, MsgSend, MsgSendResponse, MsgServer, QueryBalance, QueryBalanceResponse, QueryServer};
@@ -25,18 +25,23 @@ pub struct BankState {
 
     #[map(prefix = 2, key(address, denom), value(balance))]
     balances: UBigMap<([u8], str)>,
-
-    #[map(prefix = 3, key(module, denom), value(balance))]
-    module_balances: UBigMap<(str, str)>,
-
-    #[map(prefix = 4, key(denom), value(supply))]
+    //
+    #[map(prefix = 3, key(denom), value(supply))]
     supplies: UBigMap<str>,
+    // #[map(prefix = 4, key(module, denom), value(balance))]
+    // module_balances: UBigMap<(str, str)>,
+    //
+    // #[index(prefix = 5, on(balances(denom, address)))]
+    // balances_by_denom: Index<(str, [u8]), UBig>,
+    //
+    // #[index(prefix = 6, on(balances(denom, module)))]
+    // module_balances_by_denom: Index<(str, str), UBig>,
+}
 
-    #[index(prefix = 5, on(balances(denom, address)))]
-    balances_by_denom: Index<(str, [u8]), UBig>,
-
-    #[index(prefix = 6, on(balances(denom, module)))]
-    module_balances_by_denom: Index<(str, str), UBig>,
+pub enum BankEvent {
+    Send{from: Address, to: Address, denom: String, amount: UBig},
+    Burn{from: Address, denom: String, amount: UBig},
+    Mint{to: Address, denom: String, amount: UBig},
 }
 
 // impl Module for Bank {

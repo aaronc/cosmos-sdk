@@ -2,11 +2,9 @@ use cosmossdk_core::{Code, err};
 use cosmossdk_core::mem::Ref;
 use crate::buffer::Writer;
 use crate::key_codec::KeyCodec;
+use crate::dynamic::DynamicValue;
 
 impl KeyCodec for u32 {
-    type Borrowed<'a> = u32;
-    type AsRef<'a> = u32;
-
     fn encode<B: Writer>(buf: &mut B, key: u32) -> cosmossdk_core::Result<()> {
         buf.write(&key.to_be_bytes())
     }
@@ -22,7 +20,14 @@ impl KeyCodec for u32 {
         Some(4)
     }
 
-    fn as_ref<'a>(borrowed: Self::Borrowed<'a>, _r: Ref<'a, &'a [u8]>) -> Self::AsRef<'a> {
-        borrowed
+    fn to_dynamic(key: Self::Borrowed<'_>) -> DynamicValue {
+        DynamicValue::Text(key.to_string())
+    }
+
+    fn from_value(value: DynamicValue) -> cosmossdk_core::Result<Self::Borrowed<'static>> {
+        match value {
+            DynamicValue::Text(text) => Ok(text.parse().map_err(|_| err!(Code::InvalidArgument, "invalid number: {:?}", text))?),
+            _ => err!(Code::InvalidArgument, "expected text, got {:?}", value)
+        }
     }
 }

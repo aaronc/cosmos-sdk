@@ -1,5 +1,6 @@
 use cosmossdk_core::mem::Ref;
 use cosmossdk_core::Result;
+use crate::borrow::Ownable;
 use crate::buffer::{Writer};
 
 mod tuple;
@@ -9,18 +10,15 @@ mod int;
 mod bool;
 mod str;
 
-pub trait KeyCodec {
-    type Borrowed<'a>: 'a;
-    type AsRef<'a>;
-    // type Keys<'a>;
+pub trait KeyCodec: Ownable {
+    fn encode<B: Writer>(buf: &mut B, key: Self::T::Borrowed<'_>) -> Result<()>;
 
-    fn encode<B: Writer>(buf: &mut B, key: Self::Borrowed<'_>) -> Result<()>;
+    fn decode<'a>(buf: &'a [u8]) -> Result<(Self::T::Borrowed<'a>, usize)>;
 
-    fn decode<'a>(buf: &'a [u8]) -> Result<(Self::Borrowed<'a>, usize)>;
+    fn size_hint(key: Self::Borrowed<'_>) -> usize;
+    fn to_dynamic(key: Self::Borrowed<'_>) -> crate::dynamic::DynamicValue;
 
-    fn size_hint(key: &Self::Borrowed<'_>) -> Option<usize> { None }
-
-    fn as_ref<'a>(borrowed: Self::Borrowed<'a>, r: Ref<'a, &'a [u8]>) -> Self::AsRef<'a>;
+    fn from_value(value: crate::dynamic::DynamicValue) -> Result<Self::Borrowed<'static>>;
 }
 
 pub trait PrefixKey<Key> {}

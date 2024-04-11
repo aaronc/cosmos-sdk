@@ -1,5 +1,5 @@
 [package]
-name = "cosmos_context_api"
+name = "cosmos_core_api"
 version = "0.1.0"
 edition = "2021"
 

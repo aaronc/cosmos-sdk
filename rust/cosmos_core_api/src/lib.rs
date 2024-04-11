@@ -10,6 +10,7 @@ use cosmos_result::Result;
 mod param;
 mod client_request;
 mod address;
+mod context;
 
 /// Specifies the context for read-only calls.
 pub trait ReadContext<'a> {

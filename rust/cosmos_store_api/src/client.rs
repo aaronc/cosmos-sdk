@@ -1,5 +1,5 @@
 use std::borrow::Cow;
-use cosmos_context_api::{Context, ReadContext};
+use cosmos_core_api::{Context, ReadContext};
 
 pub trait Store {
     fn has<Ctx: ReadContext<'_>>(&self, ctx: &Ctx, key: &[u8]) -> cosmos_result::Result<bool>;

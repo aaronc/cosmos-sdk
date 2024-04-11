@@ -5,6 +5,8 @@ pub mod buffer;
 mod map;
 mod item;
 mod schema;
+mod dynamic;
+mod borrow;
 
 pub use map::*;
 pub use item::*;
