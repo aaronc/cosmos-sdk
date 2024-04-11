@@ -2,6 +2,7 @@
 
 mod wire;
 mod buf;
+mod borrowstatic;
 
 extern crate alloc;
 extern crate core;
