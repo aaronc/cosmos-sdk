@@ -24,20 +24,25 @@ pub struct Error {
 }
 
 impl Error {
-    pub fn new(code: Code) -> Self {
-        Self {
-            code,
-            codespace: "".into(),
-            #[cfg(not(feature = "no_alloc"))]
-            message: String::new(),
-        }
-    }
-
-    pub fn new_fmt(code: Code, args: core::fmt::Arguments<'_>) -> Self {
+    pub fn new(code: Code, file: &str, line: u32) -> Self {
         #[cfg(not(feature = "no_alloc"))]
             let mut message = String::new();
         #[cfg(feature = "no_alloc")]
             let mut message = fixed_str::FixedString::new();
+        let _ = core::fmt::write(&mut message, format_args!("{}:{}", file, line));
+        Self {
+            code,
+            message,
+            codespace: "".into(),
+        }
+    }
+
+    pub fn new_fmt(code: Code, file: &str, line: u32, args: core::fmt::Arguments<'_>) -> Self {
+        #[cfg(not(feature = "no_alloc"))]
+            let mut message = String::new();
+        #[cfg(feature = "no_alloc")]
+            let mut message = fixed_str::FixedString::new();
+        let _ = core::fmt::write(&mut message, format_args!("{}:{}: ", file, line));
         let _ = core::fmt::write(&mut message, args);
         Self {
             code,
@@ -48,6 +53,20 @@ impl Error {
     pub fn with_codespace(mut self, codespace: &str) -> Self {
         self.codespace = codespace.into();
         self
+    }
+
+    fn format(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Error")?;
+        if self.code != Code::Other {
+            write!(f, ":{:?}", self.code)?
+        }
+        if !self.codespace.is_empty() {
+            write!(f, ":{}", self.codespace)?
+        }
+        if !self.message.is_empty() {
+            write!(f, ": {}", self.message)?
+        }
+        Ok(())
     }
 }
 
@@ -63,13 +82,13 @@ impl Error {
 
 impl Debug for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Error {:?}: {}", self.code, self.message)
+        self.format(f)
     }
 }
 
 impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Error {:?}: {}", self.code, self.message)
+        self.format(f)
     }
 }
 
@@ -96,24 +115,18 @@ impl core::error::Error for Error {}
 #[macro_export]
 macro_rules! fmt_error {
     ($code:ident) => {
-        $crate::Error::new($crate::Code::$code)
+        $crate::Error::new($crate::Code::$code, file!(), line!())
     };
     ($code:ident, $($arg:tt)*) => {
-        $crate::Error::new_fmt($crate::Code::$code, core::format_args!($($arg)*))
+        $crate::Error::new_fmt($crate::Code::$code, file!(), line!(), core::format_args!($($arg)*))
     };
     ($($arg:tt)*) => {
-        $crate::Error::new_fmt($crate::Code::Other, core::format_args!($($arg)*))
+        $crate::Error::new_fmt($crate::Code::Other, file!(), line!(), core::format_args!($($arg)*))
     };
 }
 
 #[macro_export]
 macro_rules! bail {
-    ($code:ident) => {
-        return Err($crate::fmt_error!($code));
-    };
-    ($code:ident, $($arg:tt)*) => {
-        return Err($crate::fmt_error!($code, $($arg)*));
-    };
     ($($arg:tt)*) => {
         return Err($crate::fmt_error!($($arg)*));
     };
@@ -121,16 +134,6 @@ macro_rules! bail {
 
 #[macro_export]
 macro_rules! ensure {
-    ($cond:expr, $code:ident) => {
-        if !$cond {
-            return Err($crate::fmt_error!($code));
-        }
-    };
-    ($cond:expr, $code:ident, $($arg:tt)*) => {
-        if !$cond {
-            return Err($crate::fmt_error!($code, $($arg)*));
-        }
-    };
     ($cond:expr, $($arg:tt)*) => {
         if !$cond {
             return Err($crate::fmt_error!($($arg)*));
@@ -142,19 +145,19 @@ macro_rules! ensure {
 mod test {
     #[test]
     fn test_code_fmt() {
-        let err = fmt_error!(InvalidArgument, "invalid argument");
-        assert_eq!(format!("{:?}", err), "Error InvalidArgument: invalid argument");
+        let err = fmt_error!(InvalidArgument, "expected foo");
+        assert_eq!(format!("{:?}", err), "Error:InvalidArgument: cosmos_result/src/lib.rs:148: expected foo");
     }
 
     #[test]
     fn test_code() {
         let err = fmt_error!(InvalidArgument);
-        assert_eq!(format!("{:?}", err), "Error InvalidArgument: ");
+        assert_eq!(format!("{:?}", err), "Error:InvalidArgument: cosmos_result/src/lib.rs:154");
     }
 
     #[test]
     fn test_fmt() {
         let err = fmt_error!("some error: {}", 1);
-        assert_eq!(format!("{:?}", err), "Error Other: some error: 1");
+        assert_eq!(format!("{:?}", err), "Error: cosmos_result/src/lib.rs:160: some error: 1");
     }
 }
