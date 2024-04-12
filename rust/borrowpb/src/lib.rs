@@ -10,7 +10,7 @@ extern crate core;
 use alloc::borrow::Cow;
 use core::fmt::Debug;
 use integer_encoding::VarInt;
-use cosmos_result::{bail, Code, new_error, Result};
+use cosmos_result::{bail, Code, fmt_error, Result};
 use crate::buf::{BytesWriter};
 use crate::wire::encode_tag;
 
@@ -257,7 +257,7 @@ impl<'a, T: LengthDelimited<'a> + Debug + 'a, const N: usize> Repeated<'a, T, N>
         let Repeated::Owned(xs) = self else {
             bail!(Code::Internal, "expected Decoded");
         };
-        xs.push(x).map_err(|e| new_error!(Code::Internal, "can't push to vec: {:?}", e))?;
+        xs.push(x).map_err(|e| fmt_error!(Code::Internal, "can't push to vec: {:?}", e))?;
         Ok(n)
     }
 }

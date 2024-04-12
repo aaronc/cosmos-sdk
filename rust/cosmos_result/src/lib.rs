@@ -14,6 +14,8 @@ pub fn ok<T: Default>() -> Result<T> {
 pub struct Error {
     code: Code,
 
+    codespace: String,
+
     #[cfg(not(feature = "no_alloc"))]
     message: String,
 
@@ -25,6 +27,7 @@ impl Error {
     pub fn new(code: Code) -> Self {
         Self {
             code,
+            codespace: "".into(),
             #[cfg(not(feature = "no_alloc"))]
             message: String::new(),
         }
@@ -32,14 +35,19 @@ impl Error {
 
     pub fn new_fmt(code: Code, args: core::fmt::Arguments<'_>) -> Self {
         #[cfg(not(feature = "no_alloc"))]
-            let mut msg = String::new();
+            let mut message = String::new();
         #[cfg(feature = "no_alloc")]
-            let mut msg = fixed_str::FixedString::new();
-        let _ = core::fmt::write(&mut msg, args);
+            let mut message = fixed_str::FixedString::new();
+        let _ = core::fmt::write(&mut message, args);
         Self {
             code,
-            message: msg,
+            message,
+            codespace: "".into(),
         }
+    }
+    pub fn with_codespace(mut self, codespace: &str) -> Self {
+        self.codespace = codespace.into();
+        self
     }
 }
 
@@ -86,31 +94,67 @@ impl core::error::Error for Error {}
 // }
 
 #[macro_export]
-macro_rules! new_error {
-    ($code:expr) => {
-        $crate::Error::new($code)
+macro_rules! fmt_error {
+    ($code:ident) => {
+        $crate::Error::new($crate::Code::$code)
     };
-    ($code:expr, $($arg:tt)*) => {
-        $crate::Error::new_fmt($code, core::format_args!($($arg)*));
+    ($code:ident, $($arg:tt)*) => {
+        $crate::Error::new_fmt($crate::Code::$code, core::format_args!($($arg)*))
+    };
+    ($($arg:tt)*) => {
+        $crate::Error::new_fmt($crate::Code::Other, core::format_args!($($arg)*))
     };
 }
 
 #[macro_export]
 macro_rules! bail {
-    ($code:expr) => {
-        return core::result::Result::Err($crate::Error::new($code));
+    ($code:ident) => {
+        return Err($crate::fmt_error!($code));
     };
-    ($code:expr, $($arg:tt)*) => {
-        return core::result::Result::Err($crate::new_error!($code, $($arg)*));
+    ($code:ident, $($arg:tt)*) => {
+        return Err($crate::fmt_error!($code, $($arg)*));
+    };
+    ($($arg:tt)*) => {
+        return Err($crate::fmt_error!($($arg)*));
     };
 }
 
 #[macro_export]
 macro_rules! ensure {
-    ($cond:expr, $code:expr, $($arg:tt)*) => {
-        if !($cond) {
-            $crate::bail!($code, $($arg)*);
+    ($cond:expr, $code:ident) => {
+        if !$cond {
+            return Err($crate::fmt_error!($code));
+        }
+    };
+    ($cond:expr, $code:ident, $($arg:tt)*) => {
+        if !$cond {
+            return Err($crate::fmt_error!($code, $($arg)*));
+        }
+    };
+    ($cond:expr, $($arg:tt)*) => {
+        if !$cond {
+            return Err($crate::fmt_error!($($arg)*));
         }
     };
 }
 
+#[cfg(test)]
+mod test {
+    #[test]
+    fn test_code_fmt() {
+        let err = fmt_error!(InvalidArgument, "invalid argument");
+        assert_eq!(format!("{:?}", err), "Error InvalidArgument: invalid argument");
+    }
+
+    #[test]
+    fn test_code() {
+        let err = fmt_error!(InvalidArgument);
+        assert_eq!(format!("{:?}", err), "Error InvalidArgument: ");
+    }
+
+    #[test]
+    fn test_fmt() {
+        let err = fmt_error!("some error: {}", 1);
+        assert_eq!(format!("{:?}", err), "Error Other: some error: 1");
+    }
+}
