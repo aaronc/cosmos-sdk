@@ -10,6 +10,7 @@ pub struct MessageHeader {
     state_token: StateToken, // 32 bytes
     message_name_hash: u64, // 8 bytes
     gas_limit: u64, // 8 bytes
+    gas_consumed: u64, // 8 bytes
     in_pointer1: DataPointer, // 16 bytes
     in_pointer2: DataPointer, // 16 bytes
     out_pointer1: DataPointer, // 16 bytes
