@@ -50,4 +50,3 @@ pub struct DataPointer {
     len: u32,
     offset_or_capacity: u32,
 }
-

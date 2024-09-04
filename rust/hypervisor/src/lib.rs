@@ -58,3 +58,5 @@ pub struct NativeVM {}
 pub trait NativeHandler {
     fn invoke(&self, message_packet: *mut MessagePacket, len: usize) -> u32;
 }
+
+type Result<T, E=String> = core::result::Result<T, E>;
