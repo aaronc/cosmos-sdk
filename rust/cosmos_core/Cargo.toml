@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 cosmos_core_macros = { path = "../cosmos_core_macros" }
+cosmos_message_api = { path = "../cosmos_message_api" }
