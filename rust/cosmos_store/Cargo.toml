@@ -1,0 +1,8 @@
+[package]
+name = "cosmos_store"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+cosmos_context = { path = "../cosmos_context" }
+cosmos_message_api = { path = "../cosmos_message_api" }
