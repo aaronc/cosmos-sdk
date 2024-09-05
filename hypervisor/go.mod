@@ -1,1 +1,0 @@
-module cosmossdk.io/hypervisor

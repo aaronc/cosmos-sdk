@@ -81,7 +81,7 @@ A **message request** contains:
 
 **Message requests** can also be prepared by **account handlers** to send **messages** to other accounts.
 
-### Modules and Modules Messages
+### Modules and Module Messages
 
 There is a special class of **message**s known as **module messages**,
 where the caller should omit the address of the receiving account.
