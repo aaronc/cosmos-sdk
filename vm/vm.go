@@ -1,40 +1,21 @@
 package vm
 
 import (
-	"context"
-
 	"cosmossdk.io/depinject"
 
 	"cosmossdk.io/core/account"
 	"cosmossdk.io/core/message"
 )
 
-type VirtualMachineFactory interface {
-	Name() string
-	Init(callbacks Callbacks) (VirtualMachine, error)
-}
-
 type Callbacks interface {
-	Invoke(ctx context.Context, message message.Packet) error
+	Invoke(message message.Packet) error
 }
 
 type VirtualMachine interface {
 	depinject.OnePerModuleType
+
+	// Init must be called before any other method and only once.
+	Init(callbacks Callbacks) error
+
 	AccountHandler(handlerId string) account.Handler
-	ModuleHandler(moduleId string) ModuleInitializer
-	ModuleHandlers() []string
-}
-
-type ModuleInitializer interface {
-	isModuleInitializer()
-}
-
-type DepinjectModuleInitializer interface {
-	ModuleInitializer
-	Init([]byte) (depinject.Config, error)
-}
-
-type DirectModuleInitializer interface {
-	ModuleInitializer
-	Init([]byte) (account.Handler, error)
 }

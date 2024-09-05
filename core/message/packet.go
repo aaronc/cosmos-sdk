@@ -19,6 +19,24 @@ func (m Packet) CallerAddress() address.Address {
 	panic("not implemented")
 }
 
-func (m Packet) ContextToken() []byte {
+func (m Packet) ContextToken() [32]byte {
+	panic("not implemented")
+}
+
+func (m Packet) MessageName() string {
+	panic("not implemented")
+}
+
+func (m Packet) SetContextToken(token [32]byte) {
+	panic("not implemented")
+}
+
+type StateToken [32]byte
+
+func (m Packet) StateToken() StateToken {
+	panic("not implemented")
+}
+
+func (s StateToken) IsVolatile() bool {
 	panic("not implemented")
 }

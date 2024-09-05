@@ -1,12 +1,14 @@
 package account
 
 import (
+	"context"
+
 	"cosmossdk.io/core/message"
 )
 
 type Handler interface {
 	Descriptor() HandlerDescriptor
-	Handle(message.Packet) error
+	Handle(context.Context, message.Packet) error
 }
 
 type HandlerDescriptor struct {
