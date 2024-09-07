@@ -1,3 +1,10 @@
 [workspace]
-members = ["cosmos_core", "cosmos_core_macros", "_example1", "cosmos_message_api", "hypervisor", "cosmos_error", "cosmos_context", "cosmos_store"]
+members = [
+    "cosmos_message_api",
+    "cosmos_context",
+    "cosmos_schema",
+    "cosmos_schema_macros",
+    "cosmos_core",
+    "cosmos_core_macros", "state_objects", "state_objects_macros", "cosmos_state_api",
+]
 resolver = "2"

@@ -1,0 +1,7 @@
+[package]
+name = "cosmos_state_api"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+cosmos_context = { path = "../cosmos_context" }

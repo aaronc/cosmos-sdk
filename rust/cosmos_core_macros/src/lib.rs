@@ -58,6 +58,12 @@ pub fn service(_: TokenStream, item: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_attribute]
+pub fn account_api(_: TokenStream, item: TokenStream) -> TokenStream { item }
+
+#[proc_macro_attribute]
+pub fn module_api(_: TokenStream, item: TokenStream) -> TokenStream { item }
+
+#[proc_macro_attribute]
 pub fn proto_method(_: TokenStream, item: TokenStream) -> TokenStream {
     item
 }

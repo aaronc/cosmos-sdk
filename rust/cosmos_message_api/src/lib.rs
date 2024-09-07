@@ -1,3 +1,10 @@
+mod address;
+mod package;
+mod account_handler;
+mod wasm;
+
+pub use address::Address;
+
 pub struct MessagePacket {
     data: *mut u8,
     len: usize,
@@ -38,25 +45,9 @@ impl MessagePacket {
     pub unsafe fn in_data2(&self) -> &[u8] {
         self.header().in_pointer2.data(self.data, self.len)
     }
-
 }
 
 pub const MESSAGE_HEADER_SIZE: usize = 512;
-
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub struct Address {
-    len: u8,
-    bytes: [u8; 63],
-}
-
-impl Default for Address {
-    fn default() -> Self {
-        Self {
-            len: 0,
-            bytes: [0; 63],
-        }
-    }
-}
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub struct StateToken([u8; 32]);
@@ -157,3 +148,4 @@ pub enum Code {
 // pub type Handler = unsafe fn(account_handler_id: u64, message_packet: *mut u8, packet_len: u32) -> u32;
 //
 // pub type InvokeFn = unsafe fn(message_packet: *mut u8, packet_len: u32) -> u32;
+
