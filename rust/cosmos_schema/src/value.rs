@@ -1,12 +1,12 @@
-use crate::kind::Kind;
+use crate::kind::{I32Kind, Kind, StringKind, TypeLevelKind};
 use crate::visitor::{Decoder, DecodeError, Encoder, EncodeError};
 
-pub trait Value {
-    type MaybeBorrowed<'a>;
-    const KIND: Kind;
+pub trait Value<'a, K: TypeLevelKind<'a>> {
     const NULLABLE: bool = false;
-    fn encode<'a, V: Encoder<'a>>(value: Self::MaybeBorrowed<'a>, visitor: &'a mut V) -> Result<(), EncodeError>;
-    fn decode<'a, V: Decoder<'a>>(visitor: &'a mut V) -> Result<Self::MaybeBorrowed<'a>, DecodeError>;
+    fn to_encode_value(&'a self) -> K::EncodeType;
+    fn from_decode_value(value: K::DecodeType) -> Self;
+    // fn encode<'a, V: Encoder<'a>>(value: Self::MaybeBorrowed<'a>, visitor: &'a mut V) -> Result<(), EncodeError>;
+    // fn decode<'a, V: Decoder<'a>>(visitor: &'a mut V) -> Result<Self::MaybeBorrowed<'a>, DecodeError>;
     // fn to_dynamic(value: Self::Borrowed) -> DynamicValue;
     // fn from_dynamic<'a>(value: &'a DynamicValue<'a>) -> Result<Self::Borrowed<'a>, DecodeError>;
 }
@@ -41,17 +41,20 @@ pub trait Value {
 //     const KIND: Kind = Kind::Int16;
 // }
 //
-impl Value for i32 {
-    type MaybeBorrowed<'a> = i32;
-    const KIND: Kind = Kind::Int32;
-
-    fn encode<'a, V: Encoder<'a>>(value: Self::MaybeBorrowed<'a>, visitor: &'a mut V<'a>) -> Result<(), EncodeError> {
-        visitor.visit_i32(value)
-    }
-
-    fn decode<'a, V: Decoder<'a>>(visitor: &'a mut V) -> Result<Self::MaybeBorrowed<'a>, DecodeError> {
-        visitor.read_i32()
-    }
+impl Value<'_, I32Kind> for i32 {
+    fn to_encode_value(&self) -> i32 { *self }
+    fn from_decode_value(value: i32) -> Self { value }
+    // type DecodeKind<'a> = ();
+    // type MaybeBorrowed<'a> = i32;
+    // const KIND: Kind = Kind::Int32;
+    // 
+    // fn encode<'a, V: Encoder<'a>>(value: Self::MaybeBorrowed<'a>, visitor: &'a mut V<'a>) -> Result<(), EncodeError> {
+    //     visitor.visit_i32(value)
+    // }
+    // 
+    // fn decode<'a, V: Decoder<'a>>(visitor: &'a mut V) -> Result<Self::MaybeBorrowed<'a>, DecodeError> {
+    //     visitor.read_i32()
+    // }
 
     // fn to_dynamic(value: i32) -> DynamicValue {
     //     DynamicValue::I32(value)
@@ -75,17 +78,19 @@ impl Value for i32 {
 //     const KIND: Kind = Kind::Bool;
 // }
 //
-impl Value for str {
-    type MaybeBorrowed<'a> = &'a str;
-    const KIND: Kind = Kind::String;
-
-    fn encode<'a, V: Encoder<'a>>(value: Self::MaybeBorrowed<'a>, visitor: &'a mut V) -> Result<(), EncodeError> {
-        visitor.visit_str(value)
-    }
-
-    fn decode<'a, V: Decoder<'a>>(visitor: &'a mut V) -> Result<Self::MaybeBorrowed<'a>, DecodeError> {
-        visitor.read_str()
-    }
+impl <'a> Value<'a, StringKind> for &'a str {
+    fn to_encode_value(&self) -> &str { self }
+    fn from_decode_value(value: &'a str) -> &'a str { value }
+    // type MaybeBorrowed<'a> = &'a str;
+    // const KIND: Kind = Kind::String;
+    //
+    // fn encode<'a, V: Encoder<'a>>(value: Self::MaybeBorrowed<'a>, visitor: &'a mut V) -> Result<(), EncodeError> {
+    //     visitor.visit_str(value)
+    // }
+    //
+    // fn decode<'a, V: Decoder<'a>>(visitor: &'a mut V) -> Result<Self::MaybeBorrowed<'a>, DecodeError> {
+    //     visitor.read_str()
+    // }
 
     // fn to_dynamic(value: &str) -> DynamicValue {
     //     DynamicValue::String(value)

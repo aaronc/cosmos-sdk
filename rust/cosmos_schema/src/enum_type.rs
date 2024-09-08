@@ -1,8 +1,7 @@
 use crate::field::Field;
 use crate::kind::Kind;
-use crate::r#struct::{StructCodec, StructType};
-use crate::value::Value;
-use crate::visitor::{Decoder, DecodeError, Encoder, EncodeError};
+use crate::r#struct::StructCodec;
+use crate::visitor::{DecodeError, Decoder, EncodeError, Encoder};
 
 #[non_exhaustive]
 pub struct EnumType<'a> {
@@ -22,6 +21,7 @@ pub enum EnumKind {
 }
 
 #[non_exhaustive]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct EnumValueDefinition<'a> {
     pub name: &'a str,
     pub value: i32,
@@ -41,27 +41,34 @@ pub unsafe trait EnumCodec {
     const VALUES: &'static [EnumValueDefinition<'static>];
 }
 
-unsafe impl StructCodec for EnumValueDefinition<'_> {
+unsafe impl <'a> StructCodec<'a> for EnumValueDefinition<'a> {
     const NAME: &'static str = "EnumValueDefinition";
     const FIELDS: &'static [Field<'static>] = &[
         Field::new("name", Kind::String, false, None),
         Field::new("value", Kind::Int32, false, None),
     ];
     const SEALED: bool = true;
-    type MaybeBorrowed<'a> = EnumValueDefinition<'a>;
+    const FIELD_HAS_DEFAULT_MASK: &'static [u8] = &[];
 
-    fn encode_field<'a, V: Encoder<'a>>(value: Self::MaybeBorrowed<'a>, index: usize, visitor: &'a mut V) -> Result<(), EncodeError> {
+    fn encode_field<V: Encoder<'a>>(&self, index: usize, visitor: &'a mut V) -> Result<(), EncodeError> {
         match index {
-            0 => visitor.visit_str(value.name),
-            1 => visitor.visit_i32(value.value),
+            0 => visitor.visit_str(self.name),
+            1 => visitor.visit_i32(self.value),
             _ => Err(EncodeError::InvalidFieldIndex { index }),
         }
     }
 
-    fn decode<'a, V: Decoder<'a>>(visitor: &'a mut V) -> Result<Self::MaybeBorrowed<'a>, DecodeError> {
-        let name = visitor.read_str()?;
-        let value = visitor.read_i32()?;
-        Ok(EnumValueDefinition { name, value })
+    fn decode_field<V: Decoder<'a>>(&mut self, index: usize, visitor: &'a mut V) -> Result<(), DecodeError> {
+        match index {
+            0 => self.name = visitor.read_str()?,
+            1 => self.value = visitor.read_i32()?,
+            _ => return Err(DecodeError::InvalidFieldIndex { index }),
+        }
+        Ok(())
+    }
+
+    unsafe fn unsafe_init_default() -> Self {
+        Default::default()
     }
 
 
@@ -84,23 +91,23 @@ unsafe impl StructCodec for EnumValueDefinition<'_> {
     // }
 }
 
-impl<E: EnumCodec + TryFrom<i32>> Value for E {
-    type MaybeBorrowed<'a> = E;
-    const KIND: Kind = Kind::Enum;
-    const NULLABLE: bool = false;
-
-    fn encode<'a, V: Encoder<'a>>(value: Self::MaybeBorrowed<'a>, visitor: &'a V) {
-        visitor.visit_enum(value.into());
-    }
-
-    // fn to_dynamic(value: Self::Borrowed) -> DynamicValue {
-    //     DynamicValue::Enum(value.into())
-    // }
-    //
-    // fn from_dynamic<'a>(value: &'a DynamicValue<'a>) -> Result<Self::Borrowed<'a>, DecodeError> {
-    //     match value {
-    //         DynamicValue::Enum(value) => Ok(E::try_from(*value).map_err(|_| DecodeError::InvalidEnumValue { value: *value })?),
-    //         _ => Err(DecodeError::InvalidKind { expected: Kind::Enum, got: value.kind() }),
-    //     }
-    // }
-}
+// impl<E: EnumCodec + TryFrom<i32>> Value for E {
+//     type MaybeBorrowed<'a> = E;
+//     const KIND: Kind = Kind::Enum;
+//     const NULLABLE: bool = false;
+//
+//     fn encode<'a, V: Encoder<'a>>(value: Self::MaybeBorrowed<'a>, visitor: &'a V) {
+//         visitor.visit_enum(value.into());
+//     }
+//
+//     // fn to_dynamic(value: Self::Borrowed) -> DynamicValue {
+//     //     DynamicValue::Enum(value.into())
+//     // }
+//     //
+//     // fn from_dynamic<'a>(value: &'a DynamicValue<'a>) -> Result<Self::Borrowed<'a>, DecodeError> {
+//     //     match value {
+//     //         DynamicValue::Enum(value) => Ok(E::try_from(*value).map_err(|_| DecodeError::InvalidEnumValue { value: *value })?),
+//     //         _ => Err(DecodeError::InvalidKind { expected: Kind::Enum, got: value.kind() }),
+//     //     }
+//     // }
+// }

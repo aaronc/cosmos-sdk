@@ -28,23 +28,25 @@ impl<'a> Decoder<'a> for BinaryDecoder<'a> {
     }
 
     fn read_str(&'a mut self) -> Result<&'a str, DecodeError> {
-        let len = self.read_u32()?;
-        let (bytes, rest) = self.buf.split_at(len as usize);
-        let value = std::str::from_utf8(bytes).map_err(|_| DecodeError::InvalidUtf8)?;
-        self.buf = rest;
-        Ok(value)
+        // let len = self.read_u32()?;
+        // let (bytes, rest) = self.buf.split_at(len as usize);
+        // let value = std::str::from_utf8(bytes).map_err(|_| DecodeError::InvalidUtf8)?;
+        // self.buf = rest;
+        // Ok(value)
+        todo!()
     }
 
-    fn read_struct<V: StructCodec>(&'a mut self) -> Result<V::MaybeBorrowed<'a>, DecodeError> {
-        let len = self.read_u32()?;
-        let (mut buf, rest) = self.buf.split_at(len as usize);
-        self.buf = rest;
-        let mut nested = BinaryDecoder {
-            buf,
-            borrow_allocator: self.borrow_allocator,
-        };
-        V::decode(&mut nested)
-    }
+    // fn read_struct<V: StructCodec<'a>>(&'a mut self) -> Result<() DecodeError> {
+    //     // let len = self.read_u32();
+    //     // let (mut buf, rest) = self.buf.split_at(len as usize);
+    //     // self.buf = rest;
+    //     // let mut nested = BinaryDecoder {
+    //     //     buf,
+    //     //     borrow_allocator: self.borrow_allocator,
+    //     // };
+    //     // V::decode(&mut nested)
+    //     todo!()
+    // }
 
     fn read_enum(&'a mut self) -> Result<i32, DecodeError> {
         self.read_i32()
