@@ -9,3 +9,5 @@ mod enum_type;
 mod name;
 mod r#struct;
 mod allocator;
+mod dynamic;
+mod binary;

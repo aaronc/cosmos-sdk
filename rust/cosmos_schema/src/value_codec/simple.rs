@@ -3,7 +3,7 @@ use crate::buffer::Buffer;
 use crate::errors::{DecodeError, EncodeError};
 use crate::value_codec::ValueCodec;
 
-impl ValueCodec for i32 {
+unsafe impl ValueCodec for i32 {
     fn encode<B: Buffer>(buf: &mut B, value: Self::Borrowed) -> Result<(), EncodeError> {
         buf.write(&value.to_le_bytes()).map_err(EncodeError::BufferError)
     }
