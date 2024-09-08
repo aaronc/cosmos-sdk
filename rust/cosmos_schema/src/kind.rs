@@ -1,6 +1,6 @@
 use num_enum::{FromPrimitive, IntoPrimitive};
 use crate::enum_type::{EnumCodec, EnumKind, EnumType, EnumValueDefinition};
-use crate::list::List;
+use crate::list::ListCodec;
 use crate::r#struct::StructCodec;
 use crate::value::Value;
 use crate::visitor::{DecodeError, Decoder, EncodeError, Encoder};
@@ -90,7 +90,7 @@ impl<'a> TypeLevelKind<'a> for StringKind {
     }
 
     fn decode<D: Decoder<'a>>(decoder: &mut D) -> Result<Self::DecodeType, DecodeError> {
-        decoder.read_str()
+        decoder.decode_str()
     }
 }
 
@@ -148,7 +148,7 @@ pub struct ListKind<L, EK> {
 }
 
 impl<EK, L> Private for ListKind<L, EK> {}
-impl<'a, EK: ListElementKind<'a>, L: List<'a, EK> + 'a> TypeLevelKind<'a> for ListKind<L, EK> {
+impl<'a, EK: ListElementKind<'a>, L: ListCodec<'a, EK> + 'a> TypeLevelKind<'a> for ListKind<L, EK> {
     const KIND: Kind = Kind::List;
     type EncodeType = &'a L;
     type DecodeType = L;

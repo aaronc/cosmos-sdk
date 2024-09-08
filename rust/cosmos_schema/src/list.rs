@@ -1,28 +1,40 @@
+use std::thread::Builder;
 use crate::kind::{ListElementKind, ListKind, TypeLevelKind};
 use crate::value::Value;
 use crate::visitor::DecodeError;
 
-pub trait List<'a, EK: ListElementKind<'a>> {
-    // type Decoder: ListDecoder<'a, EK, E, Self>;
-    fn init(size_hint: Option<usize>) -> Self;
-    fn append(&mut self, value: EK::DecodeType) -> Result<(), DecodeError>;
+pub trait ListCodec<'a, EK: ListElementKind<'a>>: Sized {
+    type Builder;
+    fn new_builder(&'a mut self, size_hint: Option<usize>) -> Result<Self::Builder, DecodeError>;
+    fn append(builder: &mut Self::Builder, value: EK::DecodeType) -> Result<(), DecodeError>;
+    fn finish_building(builder: Self::Builder) -> Result<(), DecodeError>;
 }
 
-impl<'a, EK: ListElementKind<'a>, V: Value<'a, EK>> List<'a, EK> for Vec<V> {
-    fn init(size_hint: Option<usize>) -> Self {
-        match size_hint {
-            Some(size) => Vec::with_capacity(size),
-            None => Vec::new(),
-        }
+impl<'a, EK: ListElementKind<'a>, V: Value<'a, EK> + 'a> ListCodec<'a, EK> for Vec<V> {
+    type Builder = VecBuilder<'a, V>;
+
+    fn new_builder(&'a mut self, size_hint: Option<usize>) -> Result<Self::Builder, DecodeError> {
+        *self = Vec::with_capacity(size_hint.unwrap_or(0));
+        Ok(VecBuilder {
+            target: self,
+        })
     }
 
-    fn append(&mut self, value: EK::DecodeType) -> Result<(), DecodeError> {
-        self.push(V::from_decode_value(value));
+    fn append(builder: &mut Self::Builder, value: EK::DecodeType) -> Result<(), DecodeError> {
+        builder.target.push(V::from_decode_value(value));
+        Ok(())
+    }
+
+    fn finish_building(builder: Self::Builder) -> Result<(), DecodeError> {
         Ok(())
     }
 }
 
-impl<'a, EK: ListElementKind<'a>, L: List<'a, EK> + Sized + 'a> Value<'a, ListKind<L, EK>> for L {
+pub struct VecBuilder<'a, V> {
+    target: &'a mut Vec<V>,
+}
+
+impl<'a, EK: ListElementKind<'a>, L: ListCodec<'a, EK> + Sized + 'a> Value<'a, ListKind<L, EK>> for L {
     fn to_encode_value(&'a self) -> <ListKind<L, EK> as TypeLevelKind<'a>>::EncodeType {
         self
     }
@@ -31,11 +43,3 @@ impl<'a, EK: ListElementKind<'a>, L: List<'a, EK> + Sized + 'a> Value<'a, ListKi
         value
     }
 }
-
-// impl<'a, EK: TypeLevelKind<'a>, L: List<'a, EK>> Value<'a, ListKind<'a, EK, L>> for L {
-//     fn to_encode_value(&'a self) -> &'a L { self }
-//     fn from_decode_value(value: L) -> Self { value }
-// }
-
-// pub trait ListDecoder<'a, K: TypeLevelKind<'a>, E: Value<'a, K>, L: Value<'a, ListKind<'a, E>>> {
-// }

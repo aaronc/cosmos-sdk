@@ -21,9 +21,9 @@ pub unsafe trait StructCodec<'a> {
     unsafe fn unsafe_init_default() -> Self;
 }
 
-pub type StructFieldEncoder<'a, S: StructCodec<'a>, E: Encoder> = fn(&S, &mut E) -> Result<(), EncodeError>;
+pub type StructFieldEncoder<'a, S, E> = fn(&S, &mut E) -> Result<(), EncodeError>;
 
-pub type StructFieldDecoder<'a, S: StructCodec<'a>, D: Decoder<'a>> = fn(&mut S, &mut D) -> Result<(), DecodeError>;
+pub type StructFieldDecoder<'a, S, D> = fn(&mut S, &mut D) -> Result<(), DecodeError>;
 
 impl<'a, S: StructCodec<'a> + Sized + 'a> Value<'a, StructKind<S>> for S {
     fn to_encode_value(&'a self) -> &'a S { self }

@@ -1,5 +1,7 @@
 use crate::allocator::BorrowAllocator;
 use crate::buffer::Buffer;
+use crate::kind::ListElementKind;
+use crate::list::ListCodec;
 use crate::r#struct::StructCodec;
 use crate::value::Value;
 use crate::visitor::{Decoder, DecodeError};
@@ -21,14 +23,14 @@ impl<'a> Decoder<'a> for BinaryDecoder<'a> {
         todo!()
     }
 
-    fn read_u32(&mut self) -> Result<u32, DecodeError> {
+    fn decode_u32(&mut self) -> Result<u32, DecodeError> {
         let (bytes, rest) = self.buf.split_at(size_of::<i32>());
         let value = u32::from_le_bytes(bytes.try_into().unwrap());
         self.buf = rest;
         Ok(value)
     }
 
-    fn read_str(&mut self) -> Result<&'a str, DecodeError> {
+    fn decode_str(&mut self) -> Result<&'a str, DecodeError> {
         // let len = self.read_u32()?;
         // let (bytes, rest) = self.buf.split_at(len as usize);
         // let value = std::str::from_utf8(bytes).map_err(|_| DecodeError::InvalidUtf8)?;
@@ -45,6 +47,16 @@ impl<'a> Decoder<'a> for BinaryDecoder<'a> {
         Ok(())
     }
 
+    fn decode_list<V: ListCodec<'a, EK>, EK: ListElementKind<'a>>(&mut self, v: &'a mut V) -> Result<(), DecodeError> {
+        let size = self.decode_u32()? as usize;
+        let mut builder = V::new_builder(v, Some(size))?;
+        for _ in 0..size {
+            let elem = EK::decode(self)?;
+            V::append(&mut builder, elem)?;
+        }
+        V::finish_building(builder)
+    }
+
     // fn read_struct<V: StructCodec<'a>>(&'a mut self) -> Result<() DecodeError> {
     //     // let len = self.read_u32();
     //     // let (mut buf, rest) = self.buf.split_at(len as usize);
@@ -57,7 +69,7 @@ impl<'a> Decoder<'a> for BinaryDecoder<'a> {
     //     todo!()
     // }
 
-    fn read_enum(&mut self) -> Result<i32, DecodeError> {
+    fn decode_enum(&mut self) -> Result<i32, DecodeError> {
         self.decode_i32()
     }
 }
