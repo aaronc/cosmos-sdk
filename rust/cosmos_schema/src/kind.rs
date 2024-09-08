@@ -1,6 +1,8 @@
 use num_enum::{FromPrimitive, IntoPrimitive};
 use crate::enum_type::{EnumCodec, EnumKind, EnumType, EnumValueDefinition};
+use crate::list::List;
 use crate::r#struct::StructCodec;
+use crate::value::Value;
 
 #[non_exhaustive]
 #[repr(u32)]
@@ -51,16 +53,12 @@ pub struct StructKind<'a, S> {
     _phantom: std::marker::PhantomData<S>,
     _phantom_lifetime: std::marker::PhantomData<&'a ()>,
 }
-pub struct ListKind;
 
 pub trait TypeLevelKind<'a>: Private {
     const KIND: Kind;
+    const NULLABLE: bool = false;
     type EncodeType;
-    // where
-    //     Self: 'a + Sized;
     type DecodeType;
-    // where
-    //     Self: 'a + Sized;
 }
 
 impl Private for I32Kind {}
@@ -84,9 +82,35 @@ impl<'a, S: StructCodec<'a> + Sized + 'a> TypeLevelKind<'a> for StructKind<'a, S
     type DecodeType = S;
 }
 
+pub struct NullablePseudoKind<'a, K> {
+    _phantom: std::marker::PhantomData<K>,
+    _phantom_lifetime: std::marker::PhantomData<&'a ()>,
+}
+
+impl<'a, K: TypeLevelKind<'a>> Private for NullablePseudoKind<'a, K> {}
+impl<'a, K: TypeLevelKind<'a>> TypeLevelKind<'a> for NullablePseudoKind<'a, K> {
+    const KIND: Kind = K::KIND;
+    const NULLABLE: bool = true;
+    type EncodeType = Option<K::EncodeType>;
+    type DecodeType = Option<K::DecodeType>;
+}
+
 // impl Private for ListKind {}
 // impl TypeLevelKind for ListKind {
 //     const KIND: Kind = Kind::List;
 // }
 
 trait Private {}
+
+pub struct ListKind<'a, L, EK> {
+    _phantom: std::marker::PhantomData<L>,
+    _phantom2: std::marker::PhantomData<EK>,
+    _phantom_lifetime: std::marker::PhantomData<&'a ()>,
+}
+
+impl<'a, EK, L> Private for ListKind<'a, L, EK> {}
+impl<'a, EK: TypeLevelKind<'a>, L: List<'a, EK> + 'a> TypeLevelKind<'a> for ListKind<'a, L, EK> {
+    const KIND: Kind = Kind::List;
+    type EncodeType = &'a L;
+    type DecodeType = L;
+}
