@@ -1,7 +1,7 @@
 use crate::field::Field;
 use crate::kind::Kind;
-use crate::r#struct::StructCodec;
-use crate::visitor::{encode_value, DecodeError, Decoder, EncodeError, Encoder};
+use crate::r#struct::{StructCodec, StructFieldDecoder, StructFieldEncoder};
+use crate::visitor::{decode_value, encode_value, DecodeError, Decoder, EncodeError, Encoder};
 
 #[non_exhaustive]
 pub struct EnumType<'a> {
@@ -41,7 +41,7 @@ pub unsafe trait EnumCodec {
     const VALUES: &'static [EnumValueDefinition<'static>];
 }
 
-unsafe impl <'a> StructCodec<'a> for EnumValueDefinition<'a> {
+unsafe impl<'a> StructCodec<'a> for EnumValueDefinition<'a> {
     const NAME: &'static str = "EnumValueDefinition";
     const FIELDS: &'static [Field<'static>] = &[
         Field::new("name", Kind::String, false, None),
@@ -50,21 +50,20 @@ unsafe impl <'a> StructCodec<'a> for EnumValueDefinition<'a> {
     const SEALED: bool = true;
     const FIELD_HAS_DEFAULT_MASK: &'static [u8] = &[];
 
-    fn encode_field<V: Encoder<'a>>(&'a self, index: usize, encoder: &'a mut V) -> Result<(), EncodeError> {
-        match index {
-            0 => encode_value(encoder, &self.name),
-            1 => encode_value(encoder, &self.value),
-            _ => Err(EncodeError::InvalidFieldIndex { index }),
-        }
+    fn field_encoder<V: Encoder<'a>>(index: usize) -> Result<StructFieldEncoder<'a, Self, V>, EncodeError> {
+        Ok(match index {
+            0 => |value, encoder| encode_value(encoder, &value.name),
+            1 => |value, encoder| encode_value(encoder, &value.value),
+            _ => return Err(EncodeError::InvalidFieldIndex { index }),
+        })
     }
 
-    fn decode_field<V: Decoder<'a>>(&'a mut self, index: usize, visitor: &'a mut V) -> Result<(), DecodeError> {
-        match index {
-            0 => self.name = visitor.read_str()?,
-            1 => self.value = visitor.read_i32()?,
+    fn field_decoder<V: Decoder<'a>>(index: usize) -> Result<StructFieldDecoder<'a, Self, V>, DecodeError> {
+        Ok(match index {
+            0 => |value, decoder| Ok(value.name = decode_value(decoder)?),
+            1 => |value, decoder| Ok(value.value = decode_value(decoder)?),
             _ => return Err(DecodeError::InvalidFieldIndex { index }),
-        }
-        Ok(())
+        })
     }
 
     unsafe fn unsafe_init_default() -> Self {

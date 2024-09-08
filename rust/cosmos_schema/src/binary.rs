@@ -13,7 +13,7 @@ pub struct BinaryDecoder<'a> {
 }
 
 impl<'a> Decoder<'a> for BinaryDecoder<'a> {
-    fn read_i32(&'a mut self) -> Result<i32, DecodeError> {
+    fn decode_i32(&'a mut self) -> Result<i32, DecodeError> {
         let (bytes, rest) = self.buf.split_at(size_of::<i32>());
         let value = i32::from_le_bytes(bytes.try_into().unwrap());
         self.buf = rest;
@@ -36,6 +36,10 @@ impl<'a> Decoder<'a> for BinaryDecoder<'a> {
         todo!()
     }
 
+    fn decode_struct<'b, V: StructCodec<'a>>(&'a mut self, v: &'b mut V) -> Result<V, DecodeError> {
+        todo!()
+    }
+
     // fn read_struct<V: StructCodec<'a>>(&'a mut self) -> Result<() DecodeError> {
     //     // let len = self.read_u32();
     //     // let (mut buf, rest) = self.buf.split_at(len as usize);
@@ -49,6 +53,6 @@ impl<'a> Decoder<'a> for BinaryDecoder<'a> {
     // }
 
     fn read_enum(&'a mut self) -> Result<i32, DecodeError> {
-        self.read_i32()
+        self.decode_i32()
     }
 }

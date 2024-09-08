@@ -14,10 +14,10 @@ pub enum EncodeError {
 }
 
 pub trait Decoder<'a> {
-    fn read_i32(&'a mut self) -> Result<i32, DecodeError>;
+    fn decode_i32(&'a mut self) -> Result<i32, DecodeError>;
     fn read_u32(&'a mut self) -> Result<u32, DecodeError>;
     fn read_str(&'a mut self) -> Result<&'a str, DecodeError>;
-    // fn read_struct<V: StructCodec<'a>>(&'a mut self) -> Result<V, DecodeError>;
+    fn decode_struct<'b, V: StructCodec<'a>>(&'a mut self, v: &'b mut V) -> Result<V, DecodeError>;
     fn read_enum(&'a mut self) -> Result<i32, DecodeError>;
 }
 
@@ -28,4 +28,8 @@ pub enum DecodeError {
 
 pub fn encode_value<'a, E: Encoder<'a>, K: TypeLevelKind<'a>, V: Value<'a, K>>(encoder: &'a mut E, value: &'a V) -> Result<(), EncodeError> {
     K::encode(encoder, V::to_encode_value(value))
+}
+
+pub fn decode_value<'a, D: Decoder<'a>, K: TypeLevelKind<'a>, V: Value<'a, K>>(decoder: &'a mut D) -> Result<V, DecodeError> {
+    Ok(V::from_decode_value(K::decode(decoder)?))
 }

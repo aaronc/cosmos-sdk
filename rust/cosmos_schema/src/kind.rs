@@ -3,7 +3,7 @@ use crate::enum_type::{EnumCodec, EnumKind, EnumType, EnumValueDefinition};
 use crate::list::List;
 use crate::r#struct::StructCodec;
 use crate::value::Value;
-use crate::visitor::{EncodeError, Encoder};
+use crate::visitor::{DecodeError, Decoder, EncodeError, Encoder};
 
 #[non_exhaustive]
 #[repr(u32)]
@@ -61,6 +61,7 @@ pub trait TypeLevelKind<'a>: Private {
     type EncodeType;
     type DecodeType;
     fn encode<E: Encoder<'a>>(encoder: &'a mut E, value: Self::EncodeType) -> Result<(), EncodeError>;
+    fn decode<D: Decoder<'a>>(decoder: &'a mut D) -> Result<Self::DecodeType, DecodeError>;
 }
 
 impl Private for I32Kind {}
@@ -71,6 +72,10 @@ impl <'a> TypeLevelKind<'a> for I32Kind {
 
     fn encode<E: Encoder<'a>>(encoder: &'a mut E, value: Self::EncodeType) -> Result<(), EncodeError> {
         encoder.encode_i32(value)
+    }
+
+    fn decode<D: Decoder<'a>>(decoder: &'a mut D) -> Result<Self::DecodeType, DecodeError> {
+        decoder.decode_i32()
     }
 }
 
@@ -83,6 +88,10 @@ impl<'a> TypeLevelKind<'a> for StringKind {
     fn encode<E: Encoder<'a>>(encoder: &'a mut E, value: Self::EncodeType) -> Result<(), EncodeError> {
         encoder.encode_str(value)
     }
+
+    fn decode<D: Decoder<'a>>(decoder: &'a mut D) -> Result<Self::DecodeType, DecodeError> {
+        decoder.read_str()
+    }
 }
 
 impl<S> Private for StructKind<S> {}
@@ -93,6 +102,15 @@ impl<'a, S: StructCodec<'a> + Sized + 'a> TypeLevelKind<'a> for StructKind<S> {
 
     fn encode<E: Encoder<'a>>(encoder: &'a mut E, value: Self::EncodeType) -> Result<(), EncodeError> {
         encoder.encode_struct(value)
+    }
+
+    fn decode<D: Decoder<'a>>(decoder: &'a mut D) -> Result<Self::DecodeType, DecodeError> {
+        unsafe {
+            let mut s = S::unsafe_init_default();
+            decoder.decode_struct::<S>(&mut s)?;
+            // TODO check for missing default values with FIELD_HAS_DEFAULT_MASK
+            Ok(s)
+        }
     }
 }
 
@@ -109,6 +127,10 @@ impl<'a, K: TypeLevelKind<'a>> TypeLevelKind<'a> for NullablePseudoKind<'a, K> {
     type DecodeType = Option<K::DecodeType>;
 
     fn encode<E: Encoder<'a>>(encoder: &'a mut E, value: Self::EncodeType) -> Result<(), EncodeError> {
+        todo!()
+    }
+
+    fn decode<D: Decoder<'a>>(decoder: &'a mut D) -> Result<Self::DecodeType, DecodeError> {
         todo!()
     }
 }
@@ -132,6 +154,10 @@ impl<'a, EK: ListElementKind<'a>, L: List<'a, EK> + 'a> TypeLevelKind<'a> for Li
     type DecodeType = L;
 
     fn encode<E: Encoder<'a>>(encoder: &'a mut E, value: Self::EncodeType) -> Result<(), EncodeError> {
+        todo!()
+    }
+
+    fn decode<D: Decoder<'a>>(decoder: &'a mut D) -> Result<Self::DecodeType, DecodeError> {
         todo!()
     }
 }
