@@ -61,7 +61,7 @@ pub trait TypeLevelKind<'a>: Private {
     type EncodeType;
     type DecodeType;
     fn encode<E: Encoder<'a>>(encoder: &'a mut E, value: Self::EncodeType) -> Result<(), EncodeError>;
-    fn decode<'b, D: Decoder<'a>>(decoder: &'b mut D) -> Result<Self::DecodeType, DecodeError>;
+    fn decode<D: Decoder<'a>>(decoder: &mut D) -> Result<Self::DecodeType, DecodeError>;
 }
 
 impl Private for I32Kind {}
@@ -74,7 +74,7 @@ impl <'a> TypeLevelKind<'a> for I32Kind {
         encoder.encode_i32(value)
     }
 
-    fn decode<'b, D: Decoder<'a>>(decoder: &'b mut D) -> Result<Self::DecodeType, DecodeError> {
+    fn decode<D: Decoder<'a>>(decoder: &mut D) -> Result<Self::DecodeType, DecodeError> {
         decoder.decode_i32()
     }
 }
@@ -89,7 +89,7 @@ impl<'a> TypeLevelKind<'a> for StringKind {
         encoder.encode_str(value)
     }
 
-    fn decode<'b, D: Decoder<'a>>(decoder: &'b mut D) -> Result<Self::DecodeType, DecodeError> {
+    fn decode<D: Decoder<'a>>(decoder: &mut D) -> Result<Self::DecodeType, DecodeError> {
         decoder.read_str()
     }
 }
@@ -130,7 +130,7 @@ impl<'a, K: TypeLevelKind<'a>> TypeLevelKind<'a> for NullablePseudoKind<'a, K> {
         todo!()
     }
 
-    fn decode<'b, D: Decoder<'a>>(decoder: &'b mut D) -> Result<Self::DecodeType, DecodeError> {
+    fn decode<D: Decoder<'a>>(decoder: &mut D) -> Result<Self::DecodeType, DecodeError> {
         todo!()
     }
 }
@@ -157,7 +157,7 @@ impl<'a, EK: ListElementKind<'a>, L: List<'a, EK> + 'a> TypeLevelKind<'a> for Li
         todo!()
     }
 
-    fn decode<'b, D: Decoder<'a>>(decoder: &'b mut D) -> Result<Self::DecodeType, DecodeError> {
+    fn decode<D: Decoder<'a>>(decoder: &mut D) -> Result<Self::DecodeType, DecodeError> {
         todo!()
     }
 }
