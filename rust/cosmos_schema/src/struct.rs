@@ -21,7 +21,7 @@ pub unsafe trait StructCodec<'a> {
     unsafe fn unsafe_init_default() -> Self;
 }
 
-impl<'a, S: StructCodec<'a> + Sized + 'a> Value<'a, StructKind<'a, S>> for S {
+impl<'a, S: StructCodec<'a> + Sized + 'a> Value<'a, StructKind<S>> for S {
     fn to_encode_value(&'a self) -> &'a S { self }
     fn from_decode_value(value: S) -> Self { value }
 }

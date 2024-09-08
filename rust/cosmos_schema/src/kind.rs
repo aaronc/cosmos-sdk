@@ -49,9 +49,9 @@ pub enum Kind {
 
 pub struct I32Kind;
 pub struct StringKind;
-pub struct StructKind<'a, S> {
+pub struct StructKind<S> {
     _phantom: std::marker::PhantomData<S>,
-    _phantom_lifetime: std::marker::PhantomData<&'a ()>,
+    // _phantom_lifetime: std::marker::PhantomData<&'a ()>,
 }
 
 pub trait TypeLevelKind<'a>: Private {
@@ -75,8 +75,8 @@ impl<'a> TypeLevelKind<'a> for StringKind {
     type DecodeType = &'a str;
 }
 
-impl<'a, S> Private for StructKind<'a, S> {}
-impl<'a, S: StructCodec<'a> + Sized + 'a> TypeLevelKind<'a> for StructKind<'a, S> {
+impl<S> Private for StructKind<S> {}
+impl<'a, S: StructCodec<'a> + Sized + 'a> TypeLevelKind<'a> for StructKind<S> {
     const KIND: Kind = Kind::Struct;
     type EncodeType = &'a S;
     type DecodeType = S;
@@ -102,15 +102,19 @@ impl<'a, K: TypeLevelKind<'a>> TypeLevelKind<'a> for NullablePseudoKind<'a, K> {
 
 trait Private {}
 
-pub struct ListKind<'a, L, EK> {
+pub struct ListKind<L, EK> {
     _phantom: std::marker::PhantomData<L>,
     _phantom2: std::marker::PhantomData<EK>,
-    _phantom_lifetime: std::marker::PhantomData<&'a ()>,
 }
 
-impl<'a, EK, L> Private for ListKind<'a, L, EK> {}
-impl<'a, EK: TypeLevelKind<'a>, L: List<'a, EK> + 'a> TypeLevelKind<'a> for ListKind<'a, L, EK> {
+impl<EK, L> Private for ListKind<L, EK> {}
+impl<'a, EK: ListElementKind<'a>, L: List<'a, EK> + 'a> TypeLevelKind<'a> for ListKind<L, EK> {
     const KIND: Kind = Kind::List;
     type EncodeType = &'a L;
     type DecodeType = L;
 }
+
+pub trait ListElementKind<'a>: TypeLevelKind<'a> {}
+impl<'a> ListElementKind<'a> for I32Kind {}
+impl<'a> ListElementKind<'a> for StringKind {}
+impl<'a, S: StructCodec<'a> + 'a> ListElementKind<'a> for StructKind<S> {}
