@@ -60,7 +60,7 @@ pub trait TypeLevelKind<'a>: Private {
     const NULLABLE: bool = false;
     type EncodeType;
     type DecodeType;
-    fn encode<E: Encoder<'a>>(encoder: &'a mut E, value: Self::EncodeType) -> Result<(), EncodeError>;
+    fn encode<E: Encoder>(encoder: &mut E, value: Self::EncodeType) -> Result<(), EncodeError>;
     fn decode<D: Decoder<'a>>(decoder: &mut D) -> Result<Self::DecodeType, DecodeError>;
 }
 
@@ -70,7 +70,7 @@ impl <'a> TypeLevelKind<'a> for I32Kind {
     type EncodeType = i32;
     type DecodeType = i32;
 
-    fn encode<E: Encoder<'a>>(encoder: &'a mut E, value: Self::EncodeType) -> Result<(), EncodeError> {
+    fn encode<E: Encoder>(encoder: &mut E, value: Self::EncodeType) -> Result<(), EncodeError> {
         encoder.encode_i32(value)
     }
 
@@ -85,7 +85,7 @@ impl<'a> TypeLevelKind<'a> for StringKind {
     type EncodeType = &'a str;
     type DecodeType = &'a str;
 
-    fn encode<E: Encoder<'a>>(encoder: &'a mut E, value: Self::EncodeType) -> Result<(), EncodeError> {
+    fn encode<E: Encoder>(encoder: &mut E, value: Self::EncodeType) -> Result<(), EncodeError> {
         encoder.encode_str(value)
     }
 
@@ -100,7 +100,7 @@ impl<'a, S: StructCodec<'a> + Sized + 'a> TypeLevelKind<'a> for StructKind<S> {
     type EncodeType = &'a S;
     type DecodeType = S;
 
-    fn encode<E: Encoder<'a>>(encoder: &'a mut E, value: Self::EncodeType) -> Result<(), EncodeError> {
+    fn encode<E: Encoder>(encoder: &mut E, value: Self::EncodeType) -> Result<(), EncodeError> {
         encoder.encode_struct(value)
     }
 
@@ -126,7 +126,7 @@ impl<'a, K: TypeLevelKind<'a>> TypeLevelKind<'a> for NullablePseudoKind<'a, K> {
     type EncodeType = Option<K::EncodeType>;
     type DecodeType = Option<K::DecodeType>;
 
-    fn encode<E: Encoder<'a>>(encoder: &'a mut E, value: Self::EncodeType) -> Result<(), EncodeError> {
+    fn encode<E: Encoder>(encoder: &mut E, value: Self::EncodeType) -> Result<(), EncodeError> {
         todo!()
     }
 
@@ -153,7 +153,7 @@ impl<'a, EK: ListElementKind<'a>, L: List<'a, EK> + 'a> TypeLevelKind<'a> for Li
     type EncodeType = &'a L;
     type DecodeType = L;
 
-    fn encode<E: Encoder<'a>>(encoder: &'a mut E, value: Self::EncodeType) -> Result<(), EncodeError> {
+    fn encode<E: Encoder>(encoder: &mut E, value: Self::EncodeType) -> Result<(), EncodeError> {
         todo!()
     }
 

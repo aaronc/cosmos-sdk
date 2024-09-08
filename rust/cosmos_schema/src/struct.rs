@@ -16,14 +16,14 @@ pub unsafe trait StructCodec<'a> {
     const FIELDS: &'static [Field<'static>];
     const SEALED: bool;
     const FIELD_HAS_DEFAULT_MASK: &'static [u8];
-    fn field_encoder<V: Encoder<'a>>(index: usize) -> Result<StructFieldEncoder<'a, Self, V>, EncodeError>;
+    fn field_encoder<V: Encoder>(index: usize) -> Result<StructFieldEncoder<'a, Self, V>, EncodeError>;
     fn field_decoder<V: Decoder<'a>>(index: usize) -> Result<StructFieldDecoder<'a, Self, V>, DecodeError>;
     unsafe fn unsafe_init_default() -> Self;
 }
 
-pub type StructFieldEncoder<'a, S: StructCodec<'a>, E: Encoder<'a>> = fn(&'a S, &'a mut E) -> Result<(), EncodeError>;
+pub type StructFieldEncoder<'a, S: StructCodec<'a>, E: Encoder> = fn(&S, &mut E) -> Result<(), EncodeError>;
 
-pub type StructFieldDecoder<'a, S: StructCodec<'a>, D: Decoder<'a>> = fn(&'_ mut S, &'_ mut D) -> Result<(), DecodeError>;
+pub type StructFieldDecoder<'a, S: StructCodec<'a>, D: Decoder<'a>> = fn(&mut S, &mut D) -> Result<(), DecodeError>;
 
 impl<'a, S: StructCodec<'a> + Sized + 'a> Value<'a, StructKind<S>> for S {
     fn to_encode_value(&'a self) -> &'a S { self }

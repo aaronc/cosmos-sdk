@@ -2,11 +2,11 @@ use crate::kind::TypeLevelKind;
 use crate::r#struct::StructCodec;
 use crate::value::Value;
 
-pub trait Encoder<'a> {
-    fn encode_i32(&'a mut self, value: i32) -> Result<(), EncodeError>;
-    fn encode_str(&'a mut self, value: &'a str) -> Result<(), EncodeError>;
-    fn encode_struct<V: StructCodec<'a>>(&'a mut self, value: &'a V) -> Result<(), EncodeError>;
-    fn visit_enum(&'a mut self, value: i32) -> Result<(), EncodeError>;
+pub trait Encoder {
+    fn encode_i32(&mut self, value: i32) -> Result<(), EncodeError>;
+    fn encode_str(&mut self, value: &str) -> Result<(), EncodeError>;
+    fn encode_struct<'a, V: StructCodec<'a>>(&mut self, value: &'a V) -> Result<(), EncodeError>;
+    fn visit_enum(&mut self, value: i32) -> Result<(), EncodeError>;
 }
 
 pub enum EncodeError {
@@ -26,7 +26,7 @@ pub enum DecodeError {
     InvalidFieldIndex { index: usize },
 }
 
-pub fn encode_value<'a, E: Encoder<'a>, K: TypeLevelKind<'a>, V: Value<'a, K>>(encoder: &'a mut E, value: &'a V) -> Result<(), EncodeError> {
+pub fn encode_value<'a, E: Encoder, K: TypeLevelKind<'a>, V: Value<'a, K>>(encoder: &mut E, value: &'a V) -> Result<(), EncodeError> {
     K::encode(encoder, V::to_encode_value(value))
 }
 

@@ -50,7 +50,7 @@ unsafe impl<'a> StructCodec<'a> for EnumValueDefinition<'a> {
     const SEALED: bool = true;
     const FIELD_HAS_DEFAULT_MASK: &'static [u8] = &[];
 
-    fn field_encoder<V: Encoder<'a>>(index: usize) -> Result<StructFieldEncoder<'a, Self, V>, EncodeError> {
+    fn field_encoder<V: Encoder>(index: usize) -> Result<StructFieldEncoder<'a, Self, V>, EncodeError> {
         Ok(match index {
             0 => |value, encoder| encode_value(encoder, &value.name),
             1 => |value, encoder| encode_value(encoder, &value.value),
