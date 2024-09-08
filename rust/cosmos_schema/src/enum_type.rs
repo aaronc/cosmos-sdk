@@ -1,7 +1,7 @@
 use crate::field::Field;
 use crate::kind::Kind;
 use crate::r#struct::StructCodec;
-use crate::visitor::{DecodeError, Decoder, EncodeError, Encoder};
+use crate::visitor::{encode_value, DecodeError, Decoder, EncodeError, Encoder};
 
 #[non_exhaustive]
 pub struct EnumType<'a> {
@@ -50,15 +50,15 @@ unsafe impl <'a> StructCodec<'a> for EnumValueDefinition<'a> {
     const SEALED: bool = true;
     const FIELD_HAS_DEFAULT_MASK: &'static [u8] = &[];
 
-    fn encode_field<V: Encoder<'a>>(&self, index: usize, visitor: &'a mut V) -> Result<(), EncodeError> {
+    fn encode_field<V: Encoder<'a>>(&'a self, index: usize, encoder: &'a mut V) -> Result<(), EncodeError> {
         match index {
-            0 => visitor.visit_str(self.name),
-            1 => visitor.visit_i32(self.value),
+            0 => encode_value(encoder, &self.name),
+            1 => encode_value(encoder, &self.value),
             _ => Err(EncodeError::InvalidFieldIndex { index }),
         }
     }
 
-    fn decode_field<V: Decoder<'a>>(&mut self, index: usize, visitor: &'a mut V) -> Result<(), DecodeError> {
+    fn decode_field<V: Decoder<'a>>(&'a mut self, index: usize, visitor: &'a mut V) -> Result<(), DecodeError> {
         match index {
             0 => self.name = visitor.read_str()?,
             1 => self.value = visitor.read_i32()?,

@@ -3,6 +3,7 @@ use crate::enum_type::{EnumCodec, EnumKind, EnumType, EnumValueDefinition};
 use crate::list::List;
 use crate::r#struct::StructCodec;
 use crate::value::Value;
+use crate::visitor::{EncodeError, Encoder};
 
 #[non_exhaustive]
 #[repr(u32)]
@@ -59,13 +60,18 @@ pub trait TypeLevelKind<'a>: Private {
     const NULLABLE: bool = false;
     type EncodeType;
     type DecodeType;
+    fn encode<E: Encoder<'a>>(encoder: &'a mut E, value: Self::EncodeType) -> Result<(), EncodeError>;
 }
 
 impl Private for I32Kind {}
-impl TypeLevelKind<'_> for I32Kind {
+impl <'a> TypeLevelKind<'a> for I32Kind {
     const KIND: Kind = Kind::String;
     type EncodeType = i32;
     type DecodeType = i32;
+
+    fn encode<E: Encoder<'a>>(encoder: &'a mut E, value: Self::EncodeType) -> Result<(), EncodeError> {
+        encoder.encode_i32(value)
+    }
 }
 
 impl Private for StringKind {}
@@ -73,6 +79,10 @@ impl<'a> TypeLevelKind<'a> for StringKind {
     const KIND: Kind = Kind::String;
     type EncodeType = &'a str;
     type DecodeType = &'a str;
+
+    fn encode<E: Encoder<'a>>(encoder: &'a mut E, value: Self::EncodeType) -> Result<(), EncodeError> {
+        encoder.encode_str(value)
+    }
 }
 
 impl<S> Private for StructKind<S> {}
@@ -80,6 +90,10 @@ impl<'a, S: StructCodec<'a> + Sized + 'a> TypeLevelKind<'a> for StructKind<S> {
     const KIND: Kind = Kind::Struct;
     type EncodeType = &'a S;
     type DecodeType = S;
+
+    fn encode<E: Encoder<'a>>(encoder: &'a mut E, value: Self::EncodeType) -> Result<(), EncodeError> {
+        encoder.encode_struct(value)
+    }
 }
 
 pub struct NullablePseudoKind<'a, K> {
@@ -93,6 +107,10 @@ impl<'a, K: TypeLevelKind<'a>> TypeLevelKind<'a> for NullablePseudoKind<'a, K> {
     const NULLABLE: bool = true;
     type EncodeType = Option<K::EncodeType>;
     type DecodeType = Option<K::DecodeType>;
+
+    fn encode<E: Encoder<'a>>(encoder: &'a mut E, value: Self::EncodeType) -> Result<(), EncodeError> {
+        todo!()
+    }
 }
 
 // impl Private for ListKind {}
@@ -112,6 +130,10 @@ impl<'a, EK: ListElementKind<'a>, L: List<'a, EK> + 'a> TypeLevelKind<'a> for Li
     const KIND: Kind = Kind::List;
     type EncodeType = &'a L;
     type DecodeType = L;
+
+    fn encode<E: Encoder<'a>>(encoder: &'a mut E, value: Self::EncodeType) -> Result<(), EncodeError> {
+        todo!()
+    }
 }
 
 pub trait ListElementKind<'a>: TypeLevelKind<'a> {}

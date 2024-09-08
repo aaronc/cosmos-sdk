@@ -16,8 +16,8 @@ pub unsafe trait StructCodec<'a> {
     const FIELDS: &'static [Field<'static>];
     const SEALED: bool;
     const FIELD_HAS_DEFAULT_MASK: &'static [u8];
-    fn encode_field<V: Encoder<'a>>(&self, index: usize, encoder: &'a mut V) -> Result<(), EncodeError>;
-    fn decode_field<V: Decoder<'a>>(&mut self, index: usize, decoder: &'a mut V) -> Result<(), DecodeError>;
+    fn encode_field<V: Encoder<'a>>(&'a self, index: usize, encoder: &'a mut V) -> Result<(), EncodeError>;
+    fn decode_field<V: Decoder<'a>>(&'a mut self, index: usize, decoder: &'a mut V) -> Result<(), DecodeError>;
     unsafe fn unsafe_init_default() -> Self;
 }
 

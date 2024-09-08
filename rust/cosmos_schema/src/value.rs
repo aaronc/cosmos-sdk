@@ -11,12 +11,18 @@ impl Value<'_, I32Kind> for i32 {
     fn from_decode_value(value: i32) -> Self { value }
 }
 
-impl <'a> Value<'a, StringKind> for &'a str {
+impl<'a> Value<'a, StringKind> for &'a str {
     fn to_encode_value(&self) -> &str { self }
-    fn from_decode_value(value: &'a str) -> &'a str { value }
+    fn from_decode_value(value: &'a str) -> Self { value }
 }
 
-impl <'a, K: TypeLevelKind<'a>, V: Value<'a, K> + Sized> Value<'a, NullablePseudoKind<'a, K>> for Option<V> {
+#[cfg(not(feature = "no_std"))]
+impl<'a> Value<'a, StringKind> for String {
+    fn to_encode_value(&self) -> &str { self.as_str() }
+    fn from_decode_value(value: &'a str) -> Self { value.to_string() }
+}
+
+impl<'a, K: TypeLevelKind<'a>, V: Value<'a, K> + Sized> Value<'a, NullablePseudoKind<'a, K>> for Option<V> {
     fn to_encode_value(&'a self) -> Option<K::EncodeType> {
         self.as_ref().map(|v| v.to_encode_value())
     }
