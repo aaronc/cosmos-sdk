@@ -3,7 +3,7 @@ use crate::enum_type::{EnumCodec, EnumKind, EnumType, EnumValueDefinition};
 
 #[non_exhaustive]
 #[repr(u32)]
-#[derive(FromPrimitive, IntoPrimitive, Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(FromPrimitive, IntoPrimitive, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Kind {
     String = 1,
     Bytes = 2,
@@ -27,7 +27,6 @@ pub enum Kind {
     JSON,
     Struct,
     #[num_enum(catch_all)]
-    #[default]
     Unknown(u32)
 }
 

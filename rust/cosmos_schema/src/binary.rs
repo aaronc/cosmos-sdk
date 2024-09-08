@@ -1,8 +1,52 @@
 use crate::allocator::BorrowAllocator;
 use crate::buffer::Buffer;
-use crate::errors::DecodeError;
+use crate::r#struct::StructCodec;
 use crate::value::Value;
+use crate::visitor::{Decoder, DecodeError};
+// pub fn decode_binary<'a, V: Value>(buf: &'a [u8], borrow_allocator: &'a mut BorrowAllocator) -> Result<(V::MaybeBorrowed<'a>, usize), DecodeError> {
+//
+// }
 
-pub fn decode_binary<'a, V: Value>(buf: &'a [u8], borrow_allocator: &'a mut BorrowAllocator) -> Result<(V::Borrowed<'a>, usize), DecodeError> {
+pub struct BinaryDecoder<'a> {
+    buf: &'a [u8],
+    borrow_allocator: &'a mut BorrowAllocator,
+}
 
+impl<'a> Decoder<'a> for BinaryDecoder<'a> {
+    fn read_i32(&'a mut self) -> Result<i32, DecodeError> {
+        let (bytes, rest) = self.buf.split_at(size_of::<i32>());
+        let value = i32::from_le_bytes(bytes.try_into().unwrap());
+        self.buf = rest;
+        Ok(value)
+    }
+
+    fn read_u32(&'a mut self) -> Result<u32, DecodeError> {
+        let (bytes, rest) = self.buf.split_at(size_of::<i32>());
+        let value = u32::from_le_bytes(bytes.try_into().unwrap());
+        self.buf = rest;
+        Ok(value)
+    }
+
+    fn read_str(&'a mut self) -> Result<&'a str, DecodeError> {
+        let len = self.read_u32()?;
+        let (bytes, rest) = self.buf.split_at(len as usize);
+        let value = std::str::from_utf8(bytes).map_err(|_| DecodeError::InvalidUtf8)?;
+        self.buf = rest;
+        Ok(value)
+    }
+
+    fn read_struct<V: StructCodec>(&'a mut self) -> Result<V::MaybeBorrowed<'a>, DecodeError> {
+        let len = self.read_u32()?;
+        let (mut buf, rest) = self.buf.split_at(len as usize);
+        self.buf = rest;
+        let mut nested = BinaryDecoder {
+            buf,
+            borrow_allocator: self.borrow_allocator,
+        };
+        V::decode(&mut nested)
+    }
+
+    fn read_enum(&'a mut self) -> Result<i32, DecodeError> {
+        self.read_i32()
+    }
 }

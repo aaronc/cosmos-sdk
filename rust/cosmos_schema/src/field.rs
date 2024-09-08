@@ -1,10 +1,8 @@
-use crate::dynamic::DynamicValue;
-use crate::errors::DecodeError;
 use crate::kind::Kind;
 use crate::r#struct::{StructCodec, StructType};
 
 #[non_exhaustive]
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Field<'a> {
     pub name: &'a str,
     pub kind: Kind,

@@ -1,13 +1,14 @@
-use crate::dynamic::DynamicValue;
-use crate::errors::DecodeError;
 use crate::kind::Kind;
+use crate::visitor::{Decoder, DecodeError, Encoder, EncodeError};
 
 pub trait Value {
-    type Borrowed<'a>;
+    type MaybeBorrowed<'a>;
     const KIND: Kind;
     const NULLABLE: bool = false;
-    fn to_dynamic(value: Self::Borrowed) -> DynamicValue;
-    fn from_dynamic<'a>(value: &'a DynamicValue<'a>) -> Result<Self::Borrowed<'a>, DecodeError>;
+    fn encode<'a, V: Encoder<'a>>(value: Self::MaybeBorrowed<'a>, visitor: &'a mut V) -> Result<(), EncodeError>;
+    fn decode<'a, V: Decoder<'a>>(visitor: &'a mut V) -> Result<Self::MaybeBorrowed<'a>, DecodeError>;
+    // fn to_dynamic(value: Self::Borrowed) -> DynamicValue;
+    // fn from_dynamic<'a>(value: &'a DynamicValue<'a>) -> Result<Self::Borrowed<'a>, DecodeError>;
 }
 
 // impl Value for u8 {
@@ -41,19 +42,27 @@ pub trait Value {
 // }
 //
 impl Value for i32 {
-    type Borrowed<'a> = i32;
+    type MaybeBorrowed<'a> = i32;
     const KIND: Kind = Kind::Int32;
 
-    fn to_dynamic(value: i32) -> DynamicValue {
-        DynamicValue::I32(value)
+    fn encode<'a, V: Encoder<'a>>(value: Self::MaybeBorrowed<'a>, visitor: &'a mut V<'a>) -> Result<(), EncodeError> {
+        visitor.visit_i32(value)
     }
 
-    fn from_dynamic(value: &DynamicValue) -> Result<Self, DecodeError> {
-        match value {
-            DynamicValue::I32(value) => Ok(*value),
-            _ => Err(DecodeError::InvalidKind { expected: Kind::Int32, got: value.kind() }),
-        }
+    fn decode<'a, V: Decoder<'a>>(visitor: &'a mut V) -> Result<Self::MaybeBorrowed<'a>, DecodeError> {
+        visitor.read_i32()
     }
+
+    // fn to_dynamic(value: i32) -> DynamicValue {
+    //     DynamicValue::I32(value)
+    // }
+    //
+    // fn from_dynamic(value: &DynamicValue) -> Result<Self, DecodeError> {
+    //     match value {
+    //         DynamicValue::I32(value) => Ok(*value),
+    //         _ => Err(DecodeError::InvalidKind { expected: Kind::Int32, got: value.kind() }),
+    //     }
+    // }
 }
 //
 // impl Value for i64 {
@@ -67,19 +76,27 @@ impl Value for i32 {
 // }
 //
 impl Value for str {
-    type Borrowed<'a> = &'a str;
+    type MaybeBorrowed<'a> = &'a str;
     const KIND: Kind = Kind::String;
 
-    fn to_dynamic(value: &str) -> DynamicValue {
-        DynamicValue::String(value)
+    fn encode<'a, V: Encoder<'a>>(value: Self::MaybeBorrowed<'a>, visitor: &'a mut V) -> Result<(), EncodeError> {
+        visitor.visit_str(value)
     }
 
-    fn from_dynamic<'a>(value: &'a DynamicValue<'a>) -> Result<&'a str, DecodeError> {
-        match value {
-            DynamicValue::String(value) => Ok(value),
-            _ => Err(DecodeError::InvalidKind { expected: Kind::String, got: value.kind() }),
-        }
+    fn decode<'a, V: Decoder<'a>>(visitor: &'a mut V) -> Result<Self::MaybeBorrowed<'a>, DecodeError> {
+        visitor.read_str()
     }
+
+    // fn to_dynamic(value: &str) -> DynamicValue {
+    //     DynamicValue::String(value)
+    // }
+    //
+    // fn from_dynamic<'a>(value: &'a DynamicValue<'a>) -> Result<&'a str, DecodeError> {
+    //     match value {
+    //         DynamicValue::String(value) => Ok(value),
+    //         _ => Err(DecodeError::InvalidKind { expected: Kind::String, got: value.kind() }),
+    //     }
+    // }
 }
 //
 // impl <V: Value> Value for Option<V> {
