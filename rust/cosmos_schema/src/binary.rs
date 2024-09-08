@@ -13,21 +13,22 @@ pub struct BinaryDecoder<'a> {
 }
 
 impl<'a> Decoder<'a> for BinaryDecoder<'a> {
-    fn decode_i32(&'a mut self) -> Result<i32, DecodeError> {
-        let (bytes, rest) = self.buf.split_at(size_of::<i32>());
-        let value = i32::from_le_bytes(bytes.try_into().unwrap());
-        self.buf = rest;
-        Ok(value)
+    fn decode_i32(&mut self) -> Result<i32, DecodeError> {
+        // let (bytes, rest) = self.buf.split_at(size_of::<i32>());
+        // let value = i32::from_le_bytes(bytes.try_into().unwrap());
+        // self.buf = rest;
+        // Ok(value)
+        todo!()
     }
 
-    fn read_u32(&'a mut self) -> Result<u32, DecodeError> {
+    fn read_u32(&mut self) -> Result<u32, DecodeError> {
         let (bytes, rest) = self.buf.split_at(size_of::<i32>());
         let value = u32::from_le_bytes(bytes.try_into().unwrap());
         self.buf = rest;
         Ok(value)
     }
 
-    fn read_str(&'a mut self) -> Result<&'a str, DecodeError> {
+    fn read_str(&mut self) -> Result<&'a str, DecodeError> {
         // let len = self.read_u32()?;
         // let (bytes, rest) = self.buf.split_at(len as usize);
         // let value = std::str::from_utf8(bytes).map_err(|_| DecodeError::InvalidUtf8)?;
@@ -36,8 +37,12 @@ impl<'a> Decoder<'a> for BinaryDecoder<'a> {
         todo!()
     }
 
-    fn decode_struct<'b, V: StructCodec<'a>>(&'a mut self, v: &'b mut V) -> Result<V, DecodeError> {
-        todo!()
+    fn decode_struct<'b, V: StructCodec<'a>>(&mut self, v: &'b mut V) -> Result<(), DecodeError> {
+        for (i, elem) in V::FIELDS.iter().enumerate() {
+            let decoder = V::field_decoder(i)?;
+            decoder(v, self)?;
+        }
+        Ok(())
     }
 
     // fn read_struct<V: StructCodec<'a>>(&'a mut self) -> Result<() DecodeError> {
@@ -52,7 +57,7 @@ impl<'a> Decoder<'a> for BinaryDecoder<'a> {
     //     todo!()
     // }
 
-    fn read_enum(&'a mut self) -> Result<i32, DecodeError> {
+    fn read_enum(&mut self) -> Result<i32, DecodeError> {
         self.decode_i32()
     }
 }

@@ -23,7 +23,7 @@ pub unsafe trait StructCodec<'a> {
 
 pub type StructFieldEncoder<'a, S: StructCodec<'a>, E: Encoder<'a>> = fn(&'a S, &'a mut E) -> Result<(), EncodeError>;
 
-pub type StructFieldDecoder<'a, S: StructCodec<'a>, D: Decoder<'a>> = fn(&'a mut S, &'a mut D) -> Result<(), DecodeError>;
+pub type StructFieldDecoder<'a, S: StructCodec<'a>, D: Decoder<'a>> = fn(&'_ mut S, &'_ mut D) -> Result<(), DecodeError>;
 
 impl<'a, S: StructCodec<'a> + Sized + 'a> Value<'a, StructKind<S>> for S {
     fn to_encode_value(&'a self) -> &'a S { self }
