@@ -172,5 +172,20 @@ impl<'a> ListElementKind<'a> for StringKind {}
 impl<'a, S: StructCodec<'a> + 'a> ListElementKind<'a> for StructKind<S> {}
 
 pub struct IntN<const N: u32>;
+impl<const N: u32> Private for IntN<N> {}
+impl<'a, const N: u32> TypeLevelKind<'a> for IntN<N> {
+    const KIND: Kind = Kind::IntN;
+    const SIZE_LIMIT: Option<u32> = Some(N);
+    type EncodeType = [u8; N as usize];
+    type DecodeType = [u8; N as usize];
+
+    fn encode<E: Encoder>(encoder: &mut E, value: Self::EncodeType) -> Result<(), EncodeError> {
+        todo!()
+    }
+
+    fn decode<D: Decoder<'a>>(decoder: &mut D) -> Result<Self::DecodeType, DecodeError> {
+        todo!()
+    }
+}
 
 pub struct UIntN<const N: u32>;
