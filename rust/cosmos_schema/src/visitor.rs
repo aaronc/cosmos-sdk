@@ -1,5 +1,5 @@
 use crate::kind::{ListElementKind, TypeLevelKind};
-use crate::list::ListCodec;
+use crate::list::{ListAppender, ListCodec};
 use crate::r#struct::StructCodec;
 use crate::value::Value;
 
@@ -20,6 +20,7 @@ pub trait Decoder<'a> {
     fn decode_str(&mut self) -> Result<&'a str, DecodeError>;
     fn decode_struct<'b, V: StructCodec<'a>>(&mut self, v: &'b mut V) -> Result<(), DecodeError>;
     fn decode_list<V: ListCodec<'a, EK>, EK: ListElementKind<'a>>(&mut self, v: &'a mut V) -> Result<(), DecodeError>;
+    fn decode_list2<EK: ListElementKind<'a>>(&mut self, v: &'a mut dyn ListAppender<'a, EK>) -> Result<(), DecodeError>;
     fn decode_enum(&mut self) -> Result<i32, DecodeError>;
 }
 

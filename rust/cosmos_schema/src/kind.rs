@@ -1,6 +1,6 @@
 use num_enum::{FromPrimitive, IntoPrimitive};
 use crate::enum_type::{EnumCodec, EnumKind, EnumType, EnumValueDefinition};
-use crate::list::ListCodec;
+use crate::list::{ListAppender, ListCodec};
 use crate::r#struct::StructCodec;
 use crate::value::Value;
 use crate::visitor::{DecodeError, Decoder, EncodeError, Encoder};
@@ -19,8 +19,9 @@ pub enum Kind {
     Uint32 = 8,
     Int64 = 9,
     Uint64 = 10,
-    IntegerString,
-    DecimalString,
+    IntN,
+    UIntN,
+    Decimal,
     Bool,
     Time,
     Duration,
@@ -55,9 +56,11 @@ pub struct StructKind<S> {
     // _phantom_lifetime: std::marker::PhantomData<&'a ()>,
 }
 
+// TODO: rename this to something else, maybe simply Type because it's everything in field except Name basically
 pub trait TypeLevelKind<'a>: Private {
     const KIND: Kind;
     const NULLABLE: bool = false;
+    const SIZE_LIMIT: Option<u32> = None;
     type EncodeType;
     type DecodeType;
     fn encode<E: Encoder>(encoder: &mut E, value: Self::EncodeType) -> Result<(), EncodeError>;
@@ -65,7 +68,7 @@ pub trait TypeLevelKind<'a>: Private {
 }
 
 impl Private for I32Kind {}
-impl <'a> TypeLevelKind<'a> for I32Kind {
+impl<'a> TypeLevelKind<'a> for I32Kind {
     const KIND: Kind = Kind::String;
     type EncodeType = i32;
     type DecodeType = i32;
@@ -142,16 +145,17 @@ impl<'a, K: TypeLevelKind<'a>> TypeLevelKind<'a> for NullablePseudoKind<'a, K> {
 
 trait Private {}
 
-pub struct ListKind<L, EK> {
-    _phantom: std::marker::PhantomData<L>,
+// TODO remove L, we should just need to specify EK here because the list type is not a fundamentally
+// a different type in the type system, but List<EK> is
+pub struct ListKind<EK> {
     _phantom2: std::marker::PhantomData<EK>,
 }
 
-impl<EK, L> Private for ListKind<L, EK> {}
-impl<'a, EK: ListElementKind<'a>, L: ListCodec<'a, EK> + 'a> TypeLevelKind<'a> for ListKind<L, EK> {
+impl<EK> Private for ListKind<EK> {}
+impl<'a, EK: ListElementKind<'a>> TypeLevelKind<'a> for ListKind<EK> {
     const KIND: Kind = Kind::List;
-    type EncodeType = &'a L;
-    type DecodeType = L;
+    type EncodeType = todo!();
+    type DecodeType = &'a mut dyn ListAppender<'a, EK>;
 
     fn encode<E: Encoder>(encoder: &mut E, value: Self::EncodeType) -> Result<(), EncodeError> {
         todo!()
@@ -166,3 +170,7 @@ pub trait ListElementKind<'a>: TypeLevelKind<'a> {}
 impl<'a> ListElementKind<'a> for I32Kind {}
 impl<'a> ListElementKind<'a> for StringKind {}
 impl<'a, S: StructCodec<'a> + 'a> ListElementKind<'a> for StructKind<S> {}
+
+pub struct IntN<const N: u32>;
+
+pub struct UIntN<const N: u32>;

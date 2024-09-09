@@ -43,3 +43,7 @@ impl<'a, EK: ListElementKind<'a>, L: ListCodec<'a, EK> + Sized + 'a> Value<'a, L
         value
     }
 }
+
+pub trait ListAppender<'a, E: ListElementKind<'a>> {
+    fn append(&'a mut self) -> &'a mut E;
+}
