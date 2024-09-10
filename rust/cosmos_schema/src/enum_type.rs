@@ -1,6 +1,6 @@
 use cosmos_schema_macros::StructCodec;
-use crate::field::Field;
-use crate::kind::Kind;
+use crate::field::{to_field_type, Field, FieldType};
+use crate::kind::{I32Type, Kind, ReferenceType, StringType};
 use crate::r#struct::{StructCodec, StructFieldDecoder, StructFieldEncoder};
 use crate::visitor::{decode_value, encode_value, DecodeError, Decoder, EncodeError, Encoder};
 
@@ -43,11 +43,14 @@ pub unsafe trait EnumCodec {
     const VALUES: &'static [EnumValueDefinition<'static>];
 }
 
-unsafe impl<'a> StructCodec<'a> for EnumValueDefinition<'a> {
+impl<'a> ReferenceType for EnumValueDefinition<'a> {
     const NAME: &'static str = "EnumValueDefinition";
+}
+
+unsafe impl<'a> StructCodec<'a> for EnumValueDefinition<'a> {
     const FIELDS: &'static [Field<'static>] = &[
-        Field::new("name", Kind::String, false, None),
-        Field::new("value", Kind::Int32, false, None),
+        Field::new("name", to_field_type::<StringType>()),
+        Field::new("value", to_field_type::<I32Type>()),
     ];
     const SEALED: bool = true;
     const FIELD_HAS_DEFAULT_MASK: &'static [u8] = &[];

@@ -49,27 +49,32 @@ pub enum Kind {
 //     ];
 // }
 
-pub struct I32Kind;
-pub struct StringKind;
+pub struct I32Type;
+pub struct StringType;
 pub struct StructKind<S> {
     _phantom: std::marker::PhantomData<S>,
     // _phantom_lifetime: std::marker::PhantomData<&'a ()>,
 }
 
 // TODO: rename this to something else, maybe simply Type because it's everything in field except Name basically
-pub trait TypeLevelKind<'a>: Private {
+pub trait Type<'a>: Private {
     const KIND: Kind;
     const NULLABLE: bool = false;
     const SIZE_LIMIT: Option<u32> = None;
+    const ELEMENT_KIND: Option<Kind> = None;
+    type ReferencedType ;
+
     type EncodeType;
     type DecodeType;
+
     fn encode<E: Encoder>(encoder: &mut E, value: Self::EncodeType) -> Result<(), EncodeError>;
     fn decode<D: Decoder<'a>>(decoder: &mut D) -> Result<Self::DecodeType, DecodeError>;
 }
 
-impl Private for I32Kind {}
-impl<'a> TypeLevelKind<'a> for I32Kind {
+impl Private for I32Type {}
+impl<'a> Type<'a> for I32Type {
     const KIND: Kind = Kind::String;
+    type ReferencedType = ();
     type EncodeType = i32;
     type DecodeType = i32;
 
@@ -82,9 +87,10 @@ impl<'a> TypeLevelKind<'a> for I32Kind {
     }
 }
 
-impl Private for StringKind {}
-impl<'a> TypeLevelKind<'a> for StringKind {
+impl Private for StringType {}
+impl<'a> Type<'a> for StringType {
     const KIND: Kind = Kind::String;
+    type ReferencedType = ();
     type EncodeType = &'a str;
     type DecodeType = &'a str;
 
@@ -98,10 +104,11 @@ impl<'a> TypeLevelKind<'a> for StringKind {
 }
 
 impl<S> Private for StructKind<S> {}
-impl<'a, S: StructCodec<'a> + Sized + 'a> TypeLevelKind<'a> for StructKind<S> {
+impl<'a, S: StructCodec<'a> + Sized + 'a> Type<'a> for StructKind<S> {
     const KIND: Kind = Kind::Struct;
     type EncodeType = &'a S;
     type DecodeType = S;
+    type ReferencedType = S;
 
     fn encode<E: Encoder>(encoder: &mut E, value: Self::EncodeType) -> Result<(), EncodeError> {
         encoder.encode_struct(value)
@@ -122,10 +129,11 @@ pub struct NullablePseudoKind<'a, K> {
     _phantom_lifetime: std::marker::PhantomData<&'a ()>,
 }
 
-impl<'a, K: TypeLevelKind<'a>> Private for NullablePseudoKind<'a, K> {}
-impl<'a, K: TypeLevelKind<'a>> TypeLevelKind<'a> for NullablePseudoKind<'a, K> {
+impl<'a, K: Type<'a>> Private for NullablePseudoKind<'a, K> {}
+impl<'a, K: Type<'a>> Type<'a> for NullablePseudoKind<'a, K> {
     const KIND: Kind = K::KIND;
     const NULLABLE: bool = true;
+    type ReferencedType = ();
     type EncodeType = Option<K::EncodeType>;
     type DecodeType = Option<K::DecodeType>;
 
@@ -152,10 +160,12 @@ pub struct ListKind<EK> {
 }
 
 impl<EK> Private for ListKind<EK> {}
-impl<'a, EK: ListElementKind<'a>> TypeLevelKind<'a> for ListKind<EK> {
+impl<'a, EK: ListElementKind<'a> + 'a> Type<'a> for ListKind<EK> {
     const KIND: Kind = Kind::List;
-    type EncodeType = todo!();
+    const ELEMENT_KIND: Option<Kind> = Some(EK::KIND);
+    type EncodeType = ();
     type DecodeType = &'a mut dyn ListAppender<'a, EK>;
+    type ReferencedType = EK::ReferencedType;
 
     fn encode<E: Encoder>(encoder: &mut E, value: Self::EncodeType) -> Result<(), EncodeError> {
         todo!()
@@ -166,18 +176,19 @@ impl<'a, EK: ListElementKind<'a>> TypeLevelKind<'a> for ListKind<EK> {
     }
 }
 
-pub trait ListElementKind<'a>: TypeLevelKind<'a> {}
-impl<'a> ListElementKind<'a> for I32Kind {}
-impl<'a> ListElementKind<'a> for StringKind {}
+pub trait ListElementKind<'a>: Type<'a> {}
+impl<'a> ListElementKind<'a> for I32Type {}
+impl<'a> ListElementKind<'a> for StringType {}
 impl<'a, S: StructCodec<'a> + 'a> ListElementKind<'a> for StructKind<S> {}
 
-pub struct IntN<const N: u32>;
-impl<const N: u32> Private for IntN<N> {}
-impl<'a, const N: u32> TypeLevelKind<'a> for IntN<N> {
+pub struct IntN<const N: usize>;
+impl<const N: usize> Private for IntN<N> {}
+impl<'a, const N: usize> Type<'a> for IntN<N> {
     const KIND: Kind = Kind::IntN;
     const SIZE_LIMIT: Option<u32> = Some(N);
-    type EncodeType = [u8; N as usize];
-    type DecodeType = [u8; N as usize];
+    type ReferencedType = ();
+    type EncodeType = [u8; N];
+    type DecodeType = [u8; N];
 
     fn encode<E: Encoder>(encoder: &mut E, value: Self::EncodeType) -> Result<(), EncodeError> {
         todo!()
@@ -189,3 +200,11 @@ impl<'a, const N: u32> TypeLevelKind<'a> for IntN<N> {
 }
 
 pub struct UIntN<const N: u32>;
+
+pub trait ReferenceType {
+    const NAME: &'static str;
+}
+
+impl ReferenceType for () {
+    const NAME: &'static str = "";
+}

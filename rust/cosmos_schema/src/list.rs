@@ -1,5 +1,5 @@
 use std::thread::Builder;
-use crate::kind::{ListElementKind, ListKind, TypeLevelKind};
+use crate::kind::{ListElementKind, ListKind, Type};
 use crate::value::Value;
 use crate::visitor::DecodeError;
 
@@ -34,12 +34,12 @@ pub struct VecBuilder<'a, V> {
     target: &'a mut Vec<V>,
 }
 
-impl<'a, EK: ListElementKind<'a>, L: ListCodec<'a, EK> + Sized + 'a> Value<'a, ListKind<L, EK>> for L {
-    fn to_encode_value(&'a self) -> <ListKind<L, EK> as TypeLevelKind<'a>>::EncodeType {
+impl<'a, EK: ListElementKind<'a>, L: ListCodec<'a, EK> + Sized + 'a> Value<'a, ListKind<EK>> for L {
+    fn to_encode_value(&'a self) -> <ListKind<EK> as Type<'a>>::EncodeType {
         self
     }
 
-    fn from_decode_value(value: <ListKind<L, EK> as TypeLevelKind<'a>>::DecodeType) -> Self {
+    fn from_decode_value(value: <ListKind<EK> as Type<'a>>::DecodeType) -> Self {
         value
     }
 }

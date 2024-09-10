@@ -1,4 +1,4 @@
-use crate::kind::{ListElementKind, TypeLevelKind};
+use crate::kind::{ListElementKind, Type};
 use crate::list::{ListAppender, ListCodec};
 use crate::r#struct::StructCodec;
 use crate::value::Value;
@@ -29,10 +29,10 @@ pub enum DecodeError {
     InvalidFieldIndex { index: usize },
 }
 
-pub fn encode_value<'a, E: Encoder, K: TypeLevelKind<'a>, V: Value<'a, K>>(encoder: &mut E, value: &'a V) -> Result<(), EncodeError> {
+pub fn encode_value<'a, E: Encoder, K: Type<'a>, V: Value<'a, K>>(encoder: &mut E, value: &'a V) -> Result<(), EncodeError> {
     K::encode(encoder, V::to_encode_value(value))
 }
 
-pub fn decode_value<'a, 'b, D: Decoder<'a>, K: TypeLevelKind<'a>, V: Value<'a, K>>(decoder: &'b mut D) -> Result<V, DecodeError> {
+pub fn decode_value<'a, 'b, D: Decoder<'a>, K: Type<'a>, V: Value<'a, K>>(decoder: &'b mut D) -> Result<V, DecodeError> {
     Ok(V::from_decode_value(K::decode(decoder)?))
 }

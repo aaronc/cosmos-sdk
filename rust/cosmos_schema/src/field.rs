@@ -1,23 +1,35 @@
-use crate::kind::Kind;
+use crate::kind::{Kind, Type};
 use crate::r#struct::{StructCodec, StructType};
 
 #[non_exhaustive]
 #[derive(Debug, Clone)]
 pub struct Field<'a> {
     pub name: &'a str,
-    pub kind: Kind,
-    pub nullable: bool,
-    pub referenced_type: Option<&'a str>,
+    pub field_type: FieldType<'a>,
 }
 
-impl <'a> Field<'a> {
-    pub const fn new(name: &'a str, kind: Kind, nullable: bool, referenced_type: Option<&'a str>) -> Self {
+#[non_exhaustive]
+#[derive(Debug, Clone)]
+pub struct FieldType<'a> {
+    pub kind: Kind,
+    pub nullable: bool,
+    pub referenced_type: &'a str,
+}
+
+impl<'a> Field<'a> {
+    pub const fn new(name: &'a str, field_type: FieldType) -> Self {
         Self {
             name,
-            kind,
-            nullable,
-            referenced_type,
+            field_type,
         }
+    }
+}
+
+pub fn to_field_type<'a, T: Type<'a>>() -> FieldType<'a> {
+    FieldType {
+        kind: T::KIND,
+        nullable: T::NULLABLE,
+        referenced_type: T::ReferencedType::NAME,
     }
 }
 
