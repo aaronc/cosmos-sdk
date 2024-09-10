@@ -1,9 +1,9 @@
 use crate::kind::{I32Type, Kind, NullablePseudoKind, StringType, Type};
 use crate::visitor::{Decoder, DecodeError, Encoder, EncodeError};
 
-pub trait Value<'a, K: Type<'a>> {
-    fn to_encode_value(&'a self) -> K::EncodeType;
-    fn from_decode_value(value: K::DecodeType) -> Self;
+pub trait Value<'a, K: Type> {
+    fn to_encode_value(&'a self) -> K::EncodeType<'a>;
+    fn from_decode_value(value: K::DecodeType<'a>) -> Self;
 }
 
 impl Value<'_, I32Type> for i32 {
@@ -22,12 +22,12 @@ impl<'a> Value<'a, StringType> for String {
     fn from_decode_value(value: &'a str) -> Self { value.to_string() }
 }
 
-impl<'a, K: Type<'a>, V: Value<'a, K> + Sized> Value<'a, NullablePseudoKind<'a, K>> for Option<V> {
-    fn to_encode_value(&'a self) -> Option<K::EncodeType> {
+impl<'a, K: Type, V: Value<'a, K> + Sized> Value<'a, NullablePseudoKind<K>> for Option<V> {
+    fn to_encode_value(&'a self) -> Option<K::EncodeType<'a>> {
         self.as_ref().map(|v| v.to_encode_value())
     }
 
-    fn from_decode_value(value: Option<K::DecodeType>) -> Self {
+    fn from_decode_value(value: Option<K::DecodeType<'a>>) -> Self {
         value.map(|v| V::from_decode_value(v))
     }
 }

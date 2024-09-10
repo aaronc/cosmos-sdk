@@ -57,64 +57,64 @@ pub struct StructKind<S> {
 }
 
 // TODO: rename this to something else, maybe simply Type because it's everything in field except Name basically
-pub trait Type<'a>: Private {
+pub trait Type: Private {
     const KIND: Kind;
     const NULLABLE: bool = false;
     const SIZE_LIMIT: Option<u32> = None;
     const ELEMENT_KIND: Option<Kind> = None;
-    type ReferencedType ;
+    type ReferencedType;
 
-    type EncodeType;
-    type DecodeType;
+    type EncodeType<'a>;
+    type DecodeType<'a>;
 
-    fn encode<E: Encoder>(encoder: &mut E, value: Self::EncodeType) -> Result<(), EncodeError>;
-    fn decode<D: Decoder<'a>>(decoder: &mut D) -> Result<Self::DecodeType, DecodeError>;
+    fn encode<'a, E: Encoder>(encoder: &mut E, value: Self::EncodeType<'a>) -> Result<(), EncodeError>;
+    fn decode<'a, D: Decoder<'a>>(decoder: &mut D) -> Result<Self::DecodeType<'a>, DecodeError>;
 }
 
 impl Private for I32Type {}
-impl<'a> Type<'a> for I32Type {
+impl Type for I32Type {
     const KIND: Kind = Kind::String;
     type ReferencedType = ();
     type EncodeType = i32;
     type DecodeType = i32;
 
-    fn encode<E: Encoder>(encoder: &mut E, value: Self::EncodeType) -> Result<(), EncodeError> {
+    fn encode<'a, E: Encoder>(encoder: &mut E, value: Self::EncodeType<'a>) -> Result<(), EncodeError> {
         encoder.encode_i32(value)
     }
 
-    fn decode<D: Decoder<'a>>(decoder: &mut D) -> Result<Self::DecodeType, DecodeError> {
+    fn decode<'a, D: Decoder<'a>>(decoder: &mut D) -> Result<Self::DecodeType<'a>, DecodeError> {
         decoder.decode_i32()
     }
 }
 
 impl Private for StringType {}
-impl<'a> Type<'a> for StringType {
+impl Type for StringType {
     const KIND: Kind = Kind::String;
     type ReferencedType = ();
-    type EncodeType = &'a str;
-    type DecodeType = &'a str;
+    type EncodeType<'a> = &'a str;
+    type DecodeType<'a> = &'a str;
 
-    fn encode<E: Encoder>(encoder: &mut E, value: Self::EncodeType) -> Result<(), EncodeError> {
+    fn encode<'a, E: Encoder>(encoder: &mut E, value: Self::EncodeType<'a>) -> Result<(), EncodeError> {
         encoder.encode_str(value)
     }
 
-    fn decode<D: Decoder<'a>>(decoder: &mut D) -> Result<Self::DecodeType, DecodeError> {
+    fn decode<'a, D: Decoder<'a>>(decoder: &mut D) -> Result<Self::DecodeType<'a>, DecodeError> {
         decoder.decode_str()
     }
 }
 
 impl<S> Private for StructKind<S> {}
-impl<'a, S: StructCodec<'a> + Sized + 'a> Type<'a> for StructKind<S> {
+impl<'a, S: StructCodec<'a> + Sized + 'a> Type for StructKind<S> {
     const KIND: Kind = Kind::Struct;
     type EncodeType = &'a S;
     type DecodeType = S;
     type ReferencedType = S;
 
-    fn encode<E: Encoder>(encoder: &mut E, value: Self::EncodeType) -> Result<(), EncodeError> {
+    fn encode<E: Encoder>(encoder: &mut E, value: Self::EncodeType<'a>) -> Result<(), EncodeError> {
         encoder.encode_struct(value)
     }
 
-    fn decode<'b, D: Decoder<'a>>(decoder: &'b mut D) -> Result<Self::DecodeType, DecodeError> {
+    fn decode<'b, D: Decoder<'a>>(decoder: &'b mut D) -> Result<Self::DecodeType<'a>, DecodeError> {
         unsafe {
             let mut s = S::unsafe_init_default();
             decoder.decode_struct::<S>(&mut s)?;
@@ -124,24 +124,23 @@ impl<'a, S: StructCodec<'a> + Sized + 'a> Type<'a> for StructKind<S> {
     }
 }
 
-pub struct NullablePseudoKind<'a, K> {
+pub struct NullablePseudoKind<K> {
     _phantom: std::marker::PhantomData<K>,
-    _phantom_lifetime: std::marker::PhantomData<&'a ()>,
 }
 
-impl<'a, K: Type<'a>> Private for NullablePseudoKind<'a, K> {}
-impl<'a, K: Type<'a>> Type<'a> for NullablePseudoKind<'a, K> {
+impl<K: Type> Private for NullablePseudoKind<K> {}
+impl<K: Type> Type for NullablePseudoKind<K> {
     const KIND: Kind = K::KIND;
     const NULLABLE: bool = true;
     type ReferencedType = ();
-    type EncodeType = Option<K::EncodeType>;
-    type DecodeType = Option<K::DecodeType>;
+    type EncodeType<'a> = Option<K::EncodeType<'a>>;
+    type DecodeType<'a> = Option<K::DecodeType<'a>>;
 
-    fn encode<E: Encoder>(encoder: &mut E, value: Self::EncodeType) -> Result<(), EncodeError> {
+    fn encode<'a, E: Encoder>(encoder: &mut E, value: Self::EncodeType<'a>) -> Result<(), EncodeError> {
         todo!()
     }
 
-    fn decode<D: Decoder<'a>>(decoder: &mut D) -> Result<Self::DecodeType, DecodeError> {
+    fn decode<'a, D: Decoder<'a>>(decoder: &mut D) -> Result<Self::DecodeType<'a>, DecodeError> {
         todo!()
     }
 }
@@ -176,10 +175,10 @@ impl<'a, EK: ListElementKind<'a> + 'a> Type<'a> for ListKind<EK> {
     }
 }
 
-pub trait ListElementKind<'a>: Type<'a> {}
-impl<'a> ListElementKind<'a> for I32Type {}
-impl<'a> ListElementKind<'a> for StringType {}
-impl<'a, S: StructCodec<'a> + 'a> ListElementKind<'a> for StructKind<S> {}
+pub trait ListElementKind: Type {}
+impl ListElementKind for I32Type {}
+impl ListElementKind for StringType {}
+impl<'a, S: StructCodec<'a> + 'a> ListElementKind for StructKind<S> {}
 
 pub struct IntN<const N: usize>;
 impl<const N: usize> Private for IntN<N> {}

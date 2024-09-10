@@ -3,10 +3,10 @@ use crate::kind::{ListElementKind, ListKind, Type};
 use crate::value::Value;
 use crate::visitor::DecodeError;
 
-pub trait ListCodec<'a, EK: ListElementKind<'a>>: Sized {
+pub trait ListCodec<'a, EK: ListElementKind>: Sized {
     type Builder;
     fn new_builder(&'a mut self, size_hint: Option<usize>) -> Result<Self::Builder, DecodeError>;
-    fn append(builder: &mut Self::Builder, value: EK::DecodeType) -> Result<(), DecodeError>;
+    fn append(builder: &mut Self::Builder, value: EK::DecodeType<'a>) -> Result<(), DecodeError>;
     fn finish_building(builder: Self::Builder) -> Result<(), DecodeError>;
 }
 
