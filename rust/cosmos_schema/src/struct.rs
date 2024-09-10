@@ -1,5 +1,5 @@
 use crate::field::Field;
-use crate::kind::{ReferenceType, StructKind};
+use crate::kind::{ReferenceTypeCodec, StructKind};
 use crate::value::Value;
 use crate::visitor::{DecodeError, Decoder, EncodeError, Encoder};
 
@@ -10,7 +10,7 @@ pub struct StructType<'a> {
     pub sealed: bool,
 }
 
-pub unsafe trait StructCodec<'a>: ReferenceType {
+pub unsafe trait StructCodec<'a>: ReferenceTypeCodec {
     // const NUM_FIELDS: usize;
     const FIELDS: &'static [Field<'static>];
     const SEALED: bool;

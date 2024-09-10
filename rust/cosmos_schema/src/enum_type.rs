@@ -1,6 +1,6 @@
 use cosmos_schema_macros::StructCodec;
 use crate::field::{to_field_type, Field, FieldType};
-use crate::kind::{I32Type, Kind, ReferenceType, StringType};
+use crate::kind::{I32Type, Kind, ReferenceTypeCodec, StringType};
 use crate::r#struct::{StructCodec, StructFieldDecoder, StructFieldEncoder};
 use crate::visitor::{decode_value, encode_value, DecodeError, Decoder, EncodeError, Encoder};
 
@@ -43,7 +43,7 @@ pub unsafe trait EnumCodec {
     const VALUES: &'static [EnumValueDefinition<'static>];
 }
 
-impl<'a> ReferenceType for EnumValueDefinition<'a> {
+impl<'a> ReferenceTypeCodec for EnumValueDefinition<'a> {
     const NAME: &'static str = "EnumValueDefinition";
 }
 

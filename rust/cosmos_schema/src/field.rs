@@ -1,4 +1,4 @@
-use crate::kind::{Kind, Type};
+use crate::kind::{Kind, ReferenceTypeCodec, Type};
 use crate::r#struct::{StructCodec, StructType};
 
 #[non_exhaustive]
@@ -25,7 +25,10 @@ impl<'a> Field<'a> {
     }
 }
 
-pub fn to_field_type<'a, T: Type<'a>>() -> FieldType<'a> {
+pub fn to_field_type<'a, T: Type<'a>>() -> FieldType<'a>
+where
+    T::ReferencedType: ReferenceTypeCodec,
+{
     FieldType {
         kind: T::KIND,
         nullable: T::NULLABLE,

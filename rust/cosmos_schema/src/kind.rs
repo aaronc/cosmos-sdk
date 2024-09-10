@@ -1,7 +1,7 @@
 use num_enum::{FromPrimitive, IntoPrimitive};
 use crate::enum_type::{EnumCodec, EnumKind, EnumType, EnumValueDefinition};
 use crate::list::{ListAppender, ListCodec};
-use crate::r#struct::StructCodec;
+use crate::r#struct::{StructCodec, StructType};
 use crate::value::Value;
 use crate::visitor::{DecodeError, Decoder, EncodeError, Encoder};
 
@@ -200,10 +200,15 @@ impl<'a, const N: usize> Type<'a> for IntN<N> {
 
 pub struct UIntN<const N: u32>;
 
-pub trait ReferenceType {
+pub trait ReferenceTypeCodec {
     const NAME: &'static str;
 }
 
-impl ReferenceType for () {
+impl ReferenceTypeCodec for () {
     const NAME: &'static str = "";
+}
+
+pub enum ReferenceType<'a> {
+    Struct(StructType<'a>),
+    Enum(EnumType<'a>),
 }
