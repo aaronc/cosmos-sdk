@@ -1,0 +1,7 @@
+[package]
+name = "cosmos_vm_api"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+cosmos_message_api = { path = "../cosmos_message_api" }

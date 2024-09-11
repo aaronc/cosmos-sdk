@@ -5,6 +5,6 @@ members = [
     "cosmos_schema",
     "cosmos_schema_macros",
     "cosmos_core",
-    "cosmos_core_macros", "state_objects", "state_objects_macros", "cosmos_state_api",
+    "cosmos_core_macros", "state_objects", "state_objects_macros", "cosmos_state_api", "cosmos_vm_api", "cosmos_hypervisor",
 ]
 resolver = "2"

@@ -1,0 +1,9 @@
+[package]
+name = "cosmos_hypervisor"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+cosmos_message_api = { path = "../cosmos_message_api" }
+cosmos_vm_api = { path = "../cosmos_vm_api" }
+state_objects = { path = "../state_objects" }

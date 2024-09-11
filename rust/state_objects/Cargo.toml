@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 cosmos_state_api = { path = "../cosmos_state_api" }
+cosmos_context = { path = "../cosmos_context" }

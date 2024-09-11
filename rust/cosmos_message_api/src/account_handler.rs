@@ -13,7 +13,7 @@ pub struct HostCallbacks {
 }
 
 pub type InvokeFn = fn(&mut MessagePacket) -> Code;
-pub type LogFn = fn(u8, &str);
+pub type LogFn = fn(level: u8, msg: &str);
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum HandlerCode {
