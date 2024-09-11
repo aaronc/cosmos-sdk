@@ -4,6 +4,19 @@ use proc_macro::TokenStream;
 use quote::{format_ident, quote};
 use syn::{parse_macro_input, ItemTrait, TraitItem};
 
+#[derive(deluxe::ExtractAttributes)]
+#[deluxe(attributes(account))]
+struct Account(String, #[deluxe(flatten)] AccountAttributes);
+
+#[derive(deluxe::ParseMetaItem, Default)]
+#[deluxe(default)]
+struct AccountAttributes {
+    // publish lists traits to publish that don't have the #[publish] attribute,
+    // usually because they're in different files
+    publish: Vec<String>,
+    codec: Option<String>,
+}
+
 #[proc_macro_attribute]
 pub fn service(_: TokenStream, item: TokenStream) -> TokenStream {
     let item2: proc_macro2::TokenStream = item.clone().into();

@@ -1,4 +1,7 @@
 mod map;
+mod Item;
+mod set;
+
 pub use map::{Map};
 
 // Re-export macros
