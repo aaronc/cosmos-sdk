@@ -1,9 +1,9 @@
 use crate::{Code, MessagePacket};
 
-pub trait AccountHandler {
+pub trait Handler {
     fn handle(&self, message_packet: &mut MessagePacket, callbacks: &HostCallbacks) -> HandlerCode;
-    fn name() -> &'static str;
-    fn descriptor() -> &'static [u8];
+    // fn name() -> &'static str;
+    // fn descriptor() -> &'static [u8];
 }
 
 #[non_exhaustive]

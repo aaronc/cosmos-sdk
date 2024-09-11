@@ -1,13 +1,13 @@
 use std::collections::HashMap;
-use cosmos_message_api::account_handler::AccountHandler;
+use cosmos_message_api::handler::Handler;
 use cosmos_message_api::{Address, MessagePacket};
 use cosmos_vm_api::{AuthorizationHandler, StateHandler, VMFactory, VM};
 
 pub struct Hypervisor {
     // initialized at startup
     vms: HashMap<String, Box<dyn VM>>, // TODO: can we use an integer ID to avoid a hash map lookup?
-    modules: HashMap<String, Box<dyn AccountHandler>>,
-    module_message_map: HashMap<String, Box<dyn AccountHandler>>,
+    modules: HashMap<String, Box<dyn Handler>>,
+    module_message_map: HashMap<String, Box<dyn Handler>>,
     state_handler: Box<dyn StateHandler>,
     authorization_handler: Option<Box<dyn AuthorizationHandler>>,
 

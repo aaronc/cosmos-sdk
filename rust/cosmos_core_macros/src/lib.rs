@@ -17,8 +17,21 @@ struct AccountAttributes {
     codec: Option<String>,
 }
 
+
 #[proc_macro_attribute]
-pub fn service(_: TokenStream, item: TokenStream) -> TokenStream {
+pub fn account(_: TokenStream, item: TokenStream) -> TokenStream { item }
+
+#[proc_macro_attribute]
+pub fn module(_: TokenStream, item: TokenStream) -> TokenStream { item }
+
+#[proc_macro_attribute]
+pub fn publish(_: TokenStream, item: TokenStream) -> TokenStream { item }
+
+#[proc_macro_attribute]
+pub fn on_create(_: TokenStream, item: TokenStream) -> TokenStream { item }
+
+#[proc_macro_attribute]
+pub fn account_api(_: TokenStream, item: TokenStream) -> TokenStream {
     let item2: proc_macro2::TokenStream = item.clone().into();
     let input = parse_macro_input!(item as ItemTrait);
     let trait_name = &input.ident;
@@ -73,37 +86,4 @@ pub fn service(_: TokenStream, item: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_attribute]
-pub fn account_api(_: TokenStream, item: TokenStream) -> TokenStream { item }
-
-#[proc_macro_attribute]
 pub fn module_api(_: TokenStream, item: TokenStream) -> TokenStream { item }
-
-#[proc_macro_attribute]
-pub fn proto_method(_: TokenStream, item: TokenStream) -> TokenStream {
-    item
-}
-
-#[proc_macro_attribute]
-pub fn derive_account(_: TokenStream, item: TokenStream) -> TokenStream {
-    item
-}
-
-#[proc_macro_attribute]
-pub fn derive_module(_: TokenStream, item: TokenStream) -> TokenStream {
-    item
-}
-
-#[proc_macro_derive(State, attributes(map, item, table))]
-pub fn derive_state(item: TokenStream) -> TokenStream {
-    TokenStream::new()
-}
-
-#[proc_macro_derive(Serializable, attributes(proto))]
-pub fn derive_serializable(item: TokenStream) -> TokenStream {
-    TokenStream::new()
-}
-
-#[proc_macro_derive(Table)]
-pub fn derive_table(item: TokenStream) -> TokenStream {
-    TokenStream::new()
-}

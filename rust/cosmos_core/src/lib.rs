@@ -21,6 +21,7 @@ pub trait QueryHandler<M: Message> {
 extern crate cosmos_core_macros;
 #[cfg(feature = "core_macros")]
 pub use cosmos_core_macros::*;
+use cosmos_message_api::{Code, MessagePacket};
 
 #[cfg(feature = "schema_macros")]
 #[allow(unused_imports)]
@@ -28,3 +29,28 @@ pub use cosmos_core_macros::*;
 extern crate cosmos_schema_macros;
 #[cfg(feature = "schema_macros")]
 pub use cosmos_schema_macros::*;
+
+pub trait HasRoutes {
+    // type Iter: Iterator<Item=Route<Self>>;
+    //
+    // fn routes() -> Self::Iter;
+    const ROUTES: &'static [Route<Self>];
+}
+
+pub type Route<T> = (u64, fn(T, &mut MessagePacket) -> Code);
+
+impl<'a, M: Message<'a>> HasRoutes for &dyn MessageHandler<M> {
+    const ROUTES: &'static [Route<Self>] = &[
+        (0, |handler, packet| {
+            todo!()
+        })
+    ];
+    // type Iter = Vec<Route<Self>>;
+    //
+    // fn routes() -> Self::Iter {
+    //     todo!()
+    // }
+}
+
+// impl <'a, M: Message<'a>> Router for &dyn QueryHandler<M> {
+// }

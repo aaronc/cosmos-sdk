@@ -1,6 +1,6 @@
 mod address;
 mod package;
-pub mod account_handler;
+pub mod handler;
 mod wasm;
 
 pub use address::Address;

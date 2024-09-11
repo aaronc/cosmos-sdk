@@ -25,7 +25,7 @@ impl<'a> Field<'a> {
     }
 }
 
-pub fn to_field_type<'a, T: Type<'a>>() -> FieldType<'a>
+pub fn to_field_type<'a, T: Type + 'a>() -> FieldType<'a>
 where
     T::ReferencedType: ReferenceTypeCodec,
 {

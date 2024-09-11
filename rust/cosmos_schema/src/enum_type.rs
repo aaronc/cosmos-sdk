@@ -5,7 +5,7 @@ use crate::r#struct::{StructCodec, StructFieldDecoder, StructFieldEncoder};
 use crate::visitor::{decode_value, encode_value, DecodeError, Decoder, EncodeError, Encoder};
 
 #[non_exhaustive]
-#[derive(StructCodec)]
+// #[derive(StructCodec)]
 pub struct EnumType<'a> {
     pub name: &'a str,
     pub values: &'a [EnumValueDefinition<'a>],
