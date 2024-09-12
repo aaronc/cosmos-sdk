@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 arrayvec = "0.7.6"
+cosmos_message_api = { path = "../cosmos_message_api" }

@@ -24,10 +24,19 @@ pub type StructFieldEncoder<'a, S, E> = fn(&S, &mut E) -> Result<(), EncodeError
 
 pub type StructFieldDecoder<'a, S, D> = fn(&mut S, &mut D) -> Result<(), DecodeError>;
 
-impl<'a, S: StructCodec<'a> + Sized + 'a> Value<'a, StructKind<S>> for S
+impl<'a, S> Value<'a, StructKind<S>> for S
+where
+        for<'b> S: StructCodec<'b> + 'b,
 {
-    fn to_encode_value(&'a self) -> &'a S { self }
-    fn from_decode_value(value: S) -> Self { value }
+    fn to_encode_value(&'a self) -> &StructKind<S>::GetType<'a> {
+        self
+    }
+
+    fn decode<F: FnOnce(&'a mut StructKind<S>::SetType<'a>)>(decoder: &F) -> Self <'a> {
+        let mut value = unsafe { S::unsafe_init_default() };
+        decoder(&mut value);
+        value
+    }
 }
 
 // impl<V> Value for V

@@ -6,7 +6,7 @@ use crate::visitor::DecodeError;
 pub trait ListCodec<'a, EK: ListElementKind>: Sized {
     type Builder;
     fn new_builder(&'a mut self, size_hint: Option<usize>) -> Result<Self::Builder, DecodeError>;
-    fn append(builder: &mut Self::Builder, value: EK::DecodeType<'a>) -> Result<(), DecodeError>;
+    fn append(builder: &mut Self::Builder, value: EK::SetType<'a>) -> Result<(), DecodeError>;
     fn finish_building(builder: Self::Builder) -> Result<(), DecodeError>;
 }
 
@@ -45,5 +45,9 @@ pub trait ListCodec<'a, EK: ListElementKind>: Sized {
 // }
 
 pub trait ListAppender<'a, E: ListElementKind> {
-    fn append(&'a mut self) -> &mut E::DecodeType<'a>;
+    fn append(&'a mut self) -> &mut E::SetType<'a>;
+}
+
+pub trait ListReader<'a, E: ListElementKind>: Iterator<Item = E::ReferencedType> {
+    fn size_hint(&self) -> Option<usize>;
 }

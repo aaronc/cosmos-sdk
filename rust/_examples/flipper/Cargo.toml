@@ -1,0 +1,11 @@
+[package]
+name = "flipper"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+cosmos_core = { path = "../../cosmos_core" }
+state_objects = { path = "../../state_objects" }
+
+[dev-dependencies]
+cosmos_testing = { path = "../../cosmos_testing" }

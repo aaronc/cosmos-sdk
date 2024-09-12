@@ -17,7 +17,7 @@ pub struct FieldType<'a> {
 }
 
 impl<'a> Field<'a> {
-    pub const fn new(name: &'a str, field_type: FieldType) -> Self {
+    pub const fn new(name: &'a str, field_type: FieldType<'a>) -> Self {
         Self {
             name,
             field_type,
@@ -25,7 +25,7 @@ impl<'a> Field<'a> {
     }
 }
 
-pub fn to_field_type<'a, T: Type + 'a>() -> FieldType<'a>
+pub const fn to_field_type<'a, T: Type + 'a>() -> FieldType<'a>
 where
     T::ReferencedType: ReferenceTypeCodec,
 {

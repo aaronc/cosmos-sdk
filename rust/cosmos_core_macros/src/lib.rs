@@ -19,10 +19,10 @@ struct AccountAttributes {
 
 
 #[proc_macro_attribute]
-pub fn account(_: TokenStream, item: TokenStream) -> TokenStream { item }
+pub fn account_handler(_: TokenStream, item: TokenStream) -> TokenStream { item }
 
 #[proc_macro_attribute]
-pub fn module(_: TokenStream, item: TokenStream) -> TokenStream { item }
+pub fn module_handler(_: TokenStream, item: TokenStream) -> TokenStream { item }
 
 #[proc_macro_attribute]
 pub fn publish(_: TokenStream, item: TokenStream) -> TokenStream { item }

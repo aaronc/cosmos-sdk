@@ -1,17 +1,7 @@
-use arrayvec::ArrayString;
+use cosmos_message_api::SystemErrorCode;
 
-pub type Result<T, E = AnyError> = core::result::Result<T, Error<E>>;
-
-#[non_exhaustive]
-pub enum Error<E> {
-    OutOfGas,
-    AccountNotFound,
-    MessageHandlerNotFound,
-    HandlerError(E),
-}
-
-pub struct AnyError {
-    pub code: u32,
-    pub handler_id: ArrayString<64>,
-    pub message: ArrayString<256>,
+pub enum Error<T> {
+    SystemError(SystemErrorCode),
+    DecodingError,
+    HandlerError(T),
 }

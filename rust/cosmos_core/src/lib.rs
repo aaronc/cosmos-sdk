@@ -1,4 +1,7 @@
-pub use cosmos_context::Context;
+mod routes;
+
+pub use cosmos_context::{Context, Response};
+pub use cosmos_message_api::{Address};
 // pub use cosmos_schema::{StructCodec};
 
 pub trait Message<'a> /*: StructCodec<'a>*/ {
@@ -6,11 +9,11 @@ pub trait Message<'a> /*: StructCodec<'a>*/ {
     type Error;
 }
 
-pub trait MessageHandler<M: Message> {
+pub trait MessageHandler<'a, M: Message<'a>> {
     fn handle(&self, ctx: &mut Context, msg: &M) -> Result<M::Response, M::Error>;
 }
 
-pub trait QueryHandler<M: Message> {
+pub trait QueryHandler<'a, M: Message<'a>> {
     fn handle(&self, ctx: &Context, msg: &M) -> Result<M::Response, M::Error>;
 }
 
@@ -29,28 +32,3 @@ use cosmos_message_api::{Code, MessagePacket};
 extern crate cosmos_schema_macros;
 #[cfg(feature = "schema_macros")]
 pub use cosmos_schema_macros::*;
-
-pub trait HasRoutes {
-    // type Iter: Iterator<Item=Route<Self>>;
-    //
-    // fn routes() -> Self::Iter;
-    const ROUTES: &'static [Route<Self>];
-}
-
-pub type Route<T> = (u64, fn(T, &mut MessagePacket) -> Code);
-
-impl<'a, M: Message<'a>> HasRoutes for &dyn MessageHandler<M> {
-    const ROUTES: &'static [Route<Self>] = &[
-        (0, |handler, packet| {
-            todo!()
-        })
-    ];
-    // type Iter = Vec<Route<Self>>;
-    //
-    // fn routes() -> Self::Iter {
-    //     todo!()
-    // }
-}
-
-// impl <'a, M: Message<'a>> Router for &dyn QueryHandler<M> {
-// }

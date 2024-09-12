@@ -6,3 +6,5 @@ edition = "2021"
 [dependencies]
 cosmos_state_api = { path = "../cosmos_state_api" }
 cosmos_context = { path = "../cosmos_context" }
+cosmos_schema = { path = "../cosmos_schema" }
+arrayvec = "0.7.6"

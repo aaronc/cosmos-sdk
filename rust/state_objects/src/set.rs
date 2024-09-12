@@ -3,8 +3,13 @@ use crate::Map;
 use crate::map::{DeleteError, HasError, SetError};
 
 #[derive(Default)]
-pub struct Set<const Prefix: u8, K> {
-    map: Map<Prefix, K, ()>,
+pub struct Set<K, const Prefix: u8> {
+    map: Map<K, (), Prefix>,
+}
+
+#[derive(Default)]
+pub struct OrderedSet<K, const Prefix: u8> {
+    set: OrderedSet<K, Prefix>,
 }
 
 pub trait SetTrait<K> {

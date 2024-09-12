@@ -1,7 +1,7 @@
 use crate::allocator::BorrowAllocator;
 use crate::buffer::Buffer;
 use crate::kind::ListElementKind;
-use crate::list::ListCodec;
+use crate::list::{ListAppender, ListCodec};
 use crate::r#struct::StructCodec;
 use crate::value::Value;
 use crate::visitor::{Decoder, DecodeError};
@@ -47,15 +47,19 @@ impl<'a> Decoder<'a> for BinaryDecoder<'a> {
         Ok(())
     }
 
-    fn decode_list<V: ListCodec<'a, EK>, EK: ListElementKind<'a>>(&mut self, v: &'a mut V) -> Result<(), DecodeError> {
-        let size = self.decode_u32()? as usize;
-        let mut builder = V::new_builder(v, Some(size))?;
-        for _ in 0..size {
-            let elem = EK::decode(self)?;
-            V::append(&mut builder, elem)?;
-        }
-        V::finish_building(builder)
+    fn decode_list<EK: ListElementKind>(&mut self, v: &'a mut dyn ListAppender<EK>) -> Result<(), DecodeError> {
+        todo!()
     }
+
+    // fn decode_list<V: ListCodec<'a, EK>, EK: ListElementKind>(&mut self, v: &'a mut V) -> Result<(), DecodeError> {
+    //     let size = self.decode_u32()? as usize;
+    //     let mut builder = V::new_builder(v, Some(size))?;
+    //     for _ in 0..size {
+    //         let elem = EK::decode(self)?;
+    //         V::append(&mut builder, elem)?;
+    //     }
+    //     V::finish_building(builder)
+    // }
 
     // fn read_struct<V: StructCodec<'a>>(&'a mut self) -> Result<() DecodeError> {
     //     // let len = self.read_u32();

@@ -8,3 +8,8 @@ cosmos_core_macros = { path = "../cosmos_core_macros" }
 cosmos_message_api = { path = "../cosmos_message_api" }
 cosmos_schema = { path = "../cosmos_schema" }
 cosmos_context = { path = "../cosmos_context" }
+
+[features]
+default = ["core_macros", "schema_macros"]
+core_macros = []
+schema_macros = []

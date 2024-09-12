@@ -1,8 +1,11 @@
-mod map;
-mod Item;
-mod set;
+pub mod map;
+pub mod item;
+pub mod set;
+mod value;
 
-pub use map::{Map};
+pub use map::*;
+pub use set::*;
+pub use item::*;
 
 // Re-export macros
 #[cfg(feature = "macros")]

@@ -65,8 +65,8 @@ unsafe impl<'a> StructCodec<'a> for EnumValueDefinition<'a> {
 
     fn field_decoder<V: Decoder<'a>>(index: usize) -> Result<StructFieldDecoder<'a, Self, V>, DecodeError> {
         Ok(match index {
-            0 => |value, decoder| Ok(value.name = decode_value(decoder)?),
-            1 => |value, decoder| Ok(value.value = decode_value(decoder)?),
+            0 => |value, decoder| decode_value(decoder, &mut value.name),
+            1 => |value, decoder| decode_value(decoder, &mut value.value),
             _ => return Err(DecodeError::InvalidFieldIndex { index }),
         })
     }

@@ -2,8 +2,8 @@ mod key_codec;
 mod value_codec;
 mod errors;
 mod buffer;
-mod value;
-mod kind;
+pub mod value;
+pub mod kind;
 mod field;
 mod enum_type;
 mod r#struct;
@@ -11,6 +11,8 @@ mod allocator;
 mod binary;
 mod visitor;
 mod list;
+mod codec;
+mod schema;
 
 // Re-export macros
 #[cfg(feature = "macros")]
