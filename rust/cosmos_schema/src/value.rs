@@ -6,7 +6,7 @@ where
     <K as Type>::SetType<'a>: 'a,
 {
     fn to_encode_value(&'a self) -> &K::GetType<'a>;
-    fn decode<R, D: FnOnce(&'a mut K::SetType<'a>) -> R>(&'a mut self, decoder: &D) -> R;
+    fn decode<'a, D: Decoder<'a>>(&'a mut self, decoder: &mut D) -> Result<(), DecodeError>;
 }
 
 impl Value<'_, I32Type> for i32 {
@@ -14,8 +14,9 @@ impl Value<'_, I32Type> for i32 {
         self
     }
 
-    fn decode<R, D: FnOnce(&'_ mut <I32Type as Type>::SetType<'_>) -> R>(&'_ mut self, decoder: &D) -> R {
-        decoder(self)
+    fn decode<'a, D: Decoder<'a>>(&'a mut self, decoder: &mut D) -> Result<(), DecodeError> {
+        *self = decoder.decode_i32()?;
+        Ok(())
     }
 }
 
@@ -24,8 +25,9 @@ impl<'a> Value<'a, StringType> for &'a str {
         self
     }
 
-    fn decode<R, D: FnOnce(&'a mut <StringType as Type>::SetType<'a>) -> R>(&'a mut self, decoder: &D) -> R {
-        decoder(self)
+    fn decode<'a, D: Decoder<'a>>(&'a mut self, decoder: &mut D) -> Result<(), DecodeError> {
+        *self = decoder.decode_str()?;
+        Ok(())
     }
 }
 
@@ -35,11 +37,9 @@ impl<'a> Value<'a, StringType> for String {
         &self.as_str()
     }
 
-    fn decode<R, D: FnOnce(&'a mut <StringType as Type>::SetType<'a>) -> R>(&'a mut self, decoder: &D) -> R {
-        let mut s = "";
-        let res = decoder(&mut s);
-        *self = s.to_string();
-        res
+    fn decode<'a, D: Decoder<'a>>(&'a mut self, decoder: &mut D) -> Result<(), DecodeError> {
+        *self = decoder.decode_str()?.to_owned();
+        Ok(())
     }
 }
 
@@ -48,7 +48,7 @@ impl<'a, K: Type, V: Value<'a, K> + Sized> Value<'a, NullableType<K>> for Option
         self
     }
 
-    fn decode<R, D: FnOnce(&'a mut NullableType<K>::SetType<'a>) -> R>(&'a mut self, decoder: &D) -> R {
+    fn decode<'a, D: Decoder<'a>>(&'a mut self, decoder: &mut D) -> Result<(), DecodeError> {
         todo!()
     }
 }

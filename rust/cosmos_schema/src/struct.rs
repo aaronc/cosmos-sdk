@@ -32,10 +32,8 @@ where
         self
     }
 
-    fn decode<F: FnOnce(&'a mut StructKind<S>::SetType<'a>)>(decoder: &F) -> Self <'a> {
-        let mut value = unsafe { S::unsafe_init_default() };
-        decoder(&mut value);
-        value
+    fn decode<'a, D: Decoder<'a>>(&'a mut self, decoder: &mut D) -> Result<(), DecodeError> {
+        decoder.decode_struct(self)
     }
 }
 
