@@ -16,7 +16,9 @@ pub unsafe trait StructCodec: ReferenceTypeCodec + Default {
     const SEALED: bool;
     // const FIELD_HAS_DEFAULT_MASK: &'static [u8];
     fn encode_field<E: Encoder>(&self, index: usize, encoder: &mut E) -> Result<(), EncodeError>;
-    fn decode_field<'a, 'b, D: Decoder<'a>>(&'a self, index: usize, decoder: &'b mut D) -> Result<(), DecodeError>;
+    fn decode_field<'a, 'b, D: Decoder<'a>>(&'b self, index: usize, decoder: &'b mut D) -> Result<(), DecodeError>
+    where
+        Self: 'a;
     // fn field_encoder<'a, V: Encoder>(index: usize) -> Result<StructFieldEncoder<'a, Self, V>, EncodeError>;
     // fn field_decoder<'a, V: Decoder<'a>>(index: usize) -> Result<StructFieldDecoder<'a, Self, V>, DecodeError>;
     // unsafe fn unsafe_init_default() -> Self;

@@ -43,7 +43,7 @@ impl<'a> Decoder<'a> for BinaryDecoder<'a> {
         todo!()
     }
 
-    fn decode_struct<'b, V: StructCodec + 'a>(&'b mut self, v: &'a mut V) -> Result<(), DecodeError> {
+    fn decode_struct<'b, V: StructCodec + 'a>(&'b mut self, v: &'b mut V) -> Result<(), DecodeError> {
         for (i, elem) in V::FIELDS.iter().enumerate() {
             v.decode_field(i, self)?;
         }
