@@ -3,13 +3,6 @@ use crate::kind::{ListElementKind, ListKind, Type};
 use crate::value::Value;
 use crate::visitor::DecodeError;
 
-pub trait ListCodec<'a, EK: ListElementKind>: Sized {
-    type Builder;
-    fn new_builder(&'a mut self, size_hint: Option<usize>) -> Result<Self::Builder, DecodeError>;
-    fn append(builder: &mut Self::Builder, value: EK::SetType<'a>) -> Result<(), DecodeError>;
-    fn finish_building(builder: Self::Builder) -> Result<(), DecodeError>;
-}
-
 // impl<'a, EK: ListElementKind, V: Value<'a, EK> + 'a> ListCodec<'a, EK> for Vec<V> {
 //     type Builder = VecBuilder<'a, V>;
 //
@@ -44,10 +37,10 @@ pub trait ListCodec<'a, EK: ListElementKind>: Sized {
 //     }
 // }
 
-pub trait ListAppender<'a, E: ListElementKind> {
-    fn append(&'a mut self) -> &mut E::SetType<'a>;
-}
-
-pub trait ListReader<'a, E: ListElementKind>: Iterator<Item = E::GetType<'a>> {
-    fn size_hint(&self) -> Option<usize>;
-}
+// pub trait ListAppender<'a, E: ListElementKind> {
+//     fn append(&'a mut self) -> &mut E::SetType<'a>;
+// }
+//
+// pub trait ListReader<'a, E: ListElementKind>: Iterator<Item = E::GetType<'a>> {
+//     fn size_hint(&self) -> Option<usize>;
+// }

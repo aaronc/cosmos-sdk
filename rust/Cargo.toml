@@ -13,6 +13,6 @@ members = [
     "cosmos_hypervisor",
     "cosmos_error",
     "_scratch",
-    "_examples/flipper", "cosmos_testing",
+    "_examples/flipper", "cosmos_testing"
 ]
 resolver = "2"

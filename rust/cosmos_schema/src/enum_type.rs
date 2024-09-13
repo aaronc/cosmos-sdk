@@ -2,7 +2,7 @@ use cosmos_schema_macros::StructCodec;
 use crate::field::{to_field_type, Field, FieldType};
 use crate::kind::{I32Type, Kind, ReferenceTypeCodec, StringType};
 use crate::r#struct::{StructCodec, StructFieldDecoder, StructFieldEncoder};
-use crate::visitor::{decode_value, encode_value, DecodeError, Decoder, EncodeError, Encoder};
+use crate::visitor::{DecodeError, Decoder, EncodeError, Encoder};
 
 #[non_exhaustive]
 // #[derive(StructCodec)]
@@ -47,53 +47,53 @@ impl<'a> ReferenceTypeCodec for EnumValueDefinition<'a> {
     const NAME: &'static str = "EnumValueDefinition";
 }
 
-unsafe impl <'a> StructCodec for EnumValueDefinition<'a> {
-    const FIELDS: &'static [Field<'static>] = &[
-        Field::new("name", to_field_type::<StringType>()),
-        Field::new("value", to_field_type::<I32Type>()),
-    ];
-    const SEALED: bool = true;
-    // const FIELD_HAS_DEFAULT_MASK: &'static [u8] = &[];
-
-    // fn field_encoder<'b, V: Encoder>(index: usize) -> Result<StructFieldEncoder<'b, Self, V>, EncodeError> {
-    //     Ok(match index {
-    //         0 => |value, encoder| encode_value(encoder, &value.name),
-    //         1 => |value, encoder| encode_value(encoder, &value.value),
-    //         _ => return Err(EncodeError::InvalidFieldIndex { index }),
-    //     })
-    // }
-    //
-    // fn field_decoder<'b, V: Decoder<'b>>(index: usize) -> Result<StructFieldDecoder<'b, Self, V>, DecodeError> {
-    //     Ok(match index {
-    //         0 => |value, decoder| decode_value(decoder, &mut value.name),
-    //         1 => |value, decoder| decode_value(decoder, &mut value.value),
-    //         _ => return Err(DecodeError::InvalidFieldIndex { index }),
-    //     })
-    // }
-
-    // unsafe fn unsafe_init_default() -> Self {
-    //     Default::default()
-    // }
-
-
-    // fn get_field(value: Self::Borrowed, index: usize) -> Result<DynamicValue, ()> {
-    //     match index {
-    //         0 => Ok(Value::to_dynamic(value.name)),
-    //         1 => Ok(Value::to_dynamic(value.value)),
-    //         _ => Err(()),
-    //     }
-    // }
-    //
-    // fn from_fields<'a>(fields: &'a [DynamicValue]) -> Result<Self::Borrowed<'a>, DecodeError> {
-    //     if fields.len() != Self::FIELDS.len() {
-    //         return Err(DecodeError::WrongNumberFields { expected: 2, got: fields.len() });
-    //     }
-    //     Ok(EnumValueDefinition {
-    //         name: str::from_dynamic(&fields[0])?,
-    //         value: i32::from_dynamic(&fields[1])?,
-    //     })
-    // }
-}
+// unsafe impl <'a> StructCodec for EnumValueDefinition<'a> {
+//     const FIELDS: &'static [Field<'static>] = &[
+//         Field::new("name", to_field_type::<StringType>()),
+//         Field::new("value", to_field_type::<I32Type>()),
+//     ];
+//     const SEALED: bool = true;
+//     // const FIELD_HAS_DEFAULT_MASK: &'static [u8] = &[];
+//
+//     // fn field_encoder<'b, V: Encoder>(index: usize) -> Result<StructFieldEncoder<'b, Self, V>, EncodeError> {
+//     //     Ok(match index {
+//     //         0 => |value, encoder| encode_value(encoder, &value.name),
+//     //         1 => |value, encoder| encode_value(encoder, &value.value),
+//     //         _ => return Err(EncodeError::InvalidFieldIndex { index }),
+//     //     })
+//     // }
+//     //
+//     // fn field_decoder<'b, V: Decoder<'b>>(index: usize) -> Result<StructFieldDecoder<'b, Self, V>, DecodeError> {
+//     //     Ok(match index {
+//     //         0 => |value, decoder| decode_value(decoder, &mut value.name),
+//     //         1 => |value, decoder| decode_value(decoder, &mut value.value),
+//     //         _ => return Err(DecodeError::InvalidFieldIndex { index }),
+//     //     })
+//     // }
+//
+//     // unsafe fn unsafe_init_default() -> Self {
+//     //     Default::default()
+//     // }
+//
+//
+//     // fn get_field(value: Self::Borrowed, index: usize) -> Result<DynamicValue, ()> {
+//     //     match index {
+//     //         0 => Ok(Value::to_dynamic(value.name)),
+//     //         1 => Ok(Value::to_dynamic(value.value)),
+//     //         _ => Err(()),
+//     //     }
+//     // }
+//     //
+//     // fn from_fields<'a>(fields: &'a [DynamicValue]) -> Result<Self::Borrowed<'a>, DecodeError> {
+//     //     if fields.len() != Self::FIELDS.len() {
+//     //         return Err(DecodeError::WrongNumberFields { expected: 2, got: fields.len() });
+//     //     }
+//     //     Ok(EnumValueDefinition {
+//     //         name: str::from_dynamic(&fields[0])?,
+//     //         value: i32::from_dynamic(&fields[1])?,
+//     //     })
+//     // }
+// }
 
 // impl<E: EnumCodec + TryFrom<i32>> Value for E {
 //     type MaybeBorrowed<'a> = E;

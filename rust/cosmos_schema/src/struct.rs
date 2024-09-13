@@ -24,17 +24,19 @@ pub type StructFieldEncoder<'a, S, E> = fn(&'a S, &'a mut E) -> Result<(), Encod
 
 pub type StructFieldDecoder<'a, S, D> = fn(&'a mut S, &'a mut D) -> Result<(), DecodeError>;
 
-impl<'a, S: StructCodec + 'a> Value<'a, StructKind<S>> for S
+impl<S: StructCodec> Value<StructKind<S>> for S
+where
+        for<'a> S: 'a,
 {
-    fn to_encode_value(&'a self) -> <StructKind<S> as Type>::GetType<'a> {
-        // self
-        todo!()
-    }
-
-    fn decode<D: Decoder<'a>>(&'a mut self, decoder: &mut D) -> Result<(), DecodeError> {
-        // decoder.decode_struct(self)
-        todo!()
-    }
+    // fn to_encode_value(&'a self) -> <StructKind<S> as Type>::GetType<'a> {
+    //     // self
+    //     todo!()
+    // }
+    //
+    // fn decode<D: Decoder<'a>>(&'a mut self, decoder: &mut D) -> Result<(), DecodeError> {
+    //     // decoder.decode_struct(self)
+    //     todo!()
+    // }
 }
 
 // impl<V> Value for V

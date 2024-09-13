@@ -1,6 +1,5 @@
 use num_enum::{FromPrimitive, IntoPrimitive};
 use crate::enum_type::{EnumCodec, EnumKind, EnumType, EnumValueDefinition};
-use crate::list::{ListAppender, ListCodec, ListReader};
 use crate::r#struct::{StructCodec, StructType};
 use crate::value::Value;
 use crate::visitor::{DecodeError, Decoder, EncodeError, Encoder};
@@ -64,84 +63,89 @@ pub trait Type: Private {
     const ELEMENT_KIND: Option<Kind> = None;
     type ReferencedType;
 
-    type GetType<'a>;
-    type SetType<'a>;
+    type GetType<'a: 'b, 'b>;
+    type SetType<'a: 'b, 'b>;
 
-    fn encode<E: Encoder>(encoder: &mut E, value: &Self::GetType<'_>) -> Result<(), EncodeError>;
-    fn decode<'a, D: Decoder<'a>>(decoder: &mut D, set_value: &'a mut Self::SetType<'a>) -> Result<(), DecodeError>;
-}
-
-impl Private for I32Type {}
-impl Type for I32Type {
-    const KIND: Kind = Kind::String;
-    type ReferencedType = ();
-    type GetType<'a> = i32;
-    type SetType<'a> = i32;
-
-    fn encode<E: Encoder>(encoder: &mut E, value: &Self::GetType<'_>) -> Result<(), EncodeError> {
-        encoder.encode_i32(*value)
-    }
-
-    fn decode<'a, D: Decoder<'a>>(decoder: &mut D, set_value: &'a mut Self::SetType<'a>) -> Result<(), DecodeError> {
-        *set_value = decoder.decode_i32()?;
-        Ok(())
-    }
-}
-
-impl Private for StringType {}
-impl Type for StringType {
-    const KIND: Kind = Kind::String;
-    type ReferencedType = ();
-    type GetType<'a> = &'a str;
-    type SetType<'a> = &'a str;
-
-    fn encode<E: Encoder>(encoder: &mut E, value: &Self::GetType<'_>) -> Result<(), EncodeError> {
-        encoder.encode_str(value)
-    }
-
-    fn decode<'a, D: Decoder<'a>>(decoder: &mut D, set_value: &'a mut Self::SetType<'a>) -> Result<(), DecodeError> {
-        *set_value = decoder.decode_str()?;
-        Ok(())
-    }
+    fn encode<'a: 'b, 'b, E: Encoder>(encoder: &'b mut E, value: Self::GetType<'a, 'b>) -> Result<(), EncodeError>;
+    fn decode<'a: 'b, 'b, D: Decoder<'a> + 'a>(decoder: &'b mut D, set_value: Self::SetType<'a, 'b>) -> Result<(), DecodeError>;
 }
 
 impl<S> Private for StructKind<S> {}
 impl<S: StructCodec> Type for StructKind<S>
+where
+        for<'a> S: 'a,
 {
     const KIND: Kind = Kind::Struct;
     type ReferencedType = S;
-    type GetType<'a> = S;
-    type SetType<'a> = S;
+    type GetType<'a: 'b, 'b> = &'b S;
+    type SetType<'a: 'b, 'b> = &'b mut S
+    where
+        S: 'a;
 
-    fn encode<E: Encoder>(encoder: &mut E, value: &Self::GetType<'_>) -> Result<(), EncodeError> {
+    fn encode<'a: 'b, 'b, E: Encoder>(encoder: &'b mut E, value: Self::GetType<'a, 'b>) -> Result<(), EncodeError> {
         encoder.encode_struct(value)
     }
 
-    fn decode<'a, D: Decoder<'a>>(decoder: &mut D, set_value: &'a mut Self::GetType<'a>) -> Result<(), DecodeError> {
+    fn decode<'a: 'b, 'b, D: Decoder<'a> + 'a>(decoder: &'b mut D, set_value: Self::SetType<'a, 'b>) -> Result<(), DecodeError> {
         decoder.decode_struct(set_value)
     }
 }
+
+
+// impl Private for I32Type {}
+// impl Type for I32Type {
+//     const KIND: Kind = Kind::String;
+//     type ReferencedType = ();
+//     type GetType<'a> = i32;
+//     type SetType<'a> = i32;
+//
+//     fn encode<'a: 'b, 'b, E: Encoder>(encoder: &'b mut E, value: &Self::GetType<'a>) -> Result<(), EncodeError> {
+//         encoder.encode_i32(*value)
+//     }
+//
+//     fn decode<'a: 'b, 'b, D: Decoder<'a> + 'a>(decoder: &'b mut D, set_value: &'b mut Self::SetType<'a>) -> Result<(), DecodeError> {
+//         *set_value = decoder.decode_i32()?;
+//         Ok(())
+//     }
+// }
+
+// impl Private for StringType {}
+// impl Type for StringType {
+//     const KIND: Kind = Kind::String;
+//     type ReferencedType = ();
+//     type GetType<'a> = &'a str;
+//     type SetType<'a> = &'a str;
+//
+//     fn encode<'a: 'b, 'b, E: Encoder>(encoder: &'b mut E, value: &Self::GetType<'a>) -> Result<(), EncodeError> {
+//         encoder.encode_str(value)
+//     }
+//
+//     fn decode<'a: 'b, 'b, D: Decoder<'a> + 'a>(decoder: &'b mut D, set_value: &'b mut Self::SetType<'a>) -> Result<(), DecodeError> {
+//         *set_value = decoder.decode_str()?;
+//         Ok(())
+//     }
+// }
 
 pub struct NullableType<K> {
     _phantom: std::marker::PhantomData<K>,
 }
 
-impl<K: Type> Private for NullableType<K> {}
-impl<K: Type> Type for NullableType<K> {
-    const KIND: Kind = K::KIND;
-    const NULLABLE: bool = true;
-    type ReferencedType = K::ReferencedType;
-    type GetType<'a> = Option<K::GetType<'a>>;
-    type SetType<'a> = Option<K::SetType<'a>>;
-
-    fn encode<E: Encoder>(encoder: &mut E, value: &Self::GetType<'_>) -> Result<(), EncodeError> {
-        todo!()
-    }
-
-    fn decode<'a, D: Decoder<'a>>(decoder: &mut D, set_value: &'a mut Self::SetType<'a>) -> Result<(), DecodeError> {
-        todo!()
-    }
-}
+// impl<K: Type> Private for NullableType<K> {}
+// impl<K: Type> Type for NullableType<K> {
+//     const KIND: Kind = K::KIND;
+//     const NULLABLE: bool = true;
+//     type ReferencedType = K::ReferencedType;
+//     type GetType<'a> = Option<K::GetType<'a>>;
+//     type SetType<'a> = Option<K::SetType<'a>>;
+//
+//     fn encode<E: Encoder>(encoder: &mut E, value: &Self::GetType<'_>) -> Result<(), EncodeError> {
+//         todo!()
+//     }
+//
+//     fn decode<'a, D: Decoder<'a>>(decoder: &mut D, set_value: &'a mut Self::SetType<'a>) -> Result<(), DecodeError> {
+//         todo!()
+//     }
+// }
 
 // impl Private for ListKind {}
 // impl TypeLevelKind for ListKind {
@@ -156,46 +160,44 @@ pub struct ListKind<EK> {
     _phantom2: std::marker::PhantomData<EK>,
 }
 
-impl<EK> Private for ListKind<EK> {}
-impl<EK: ListElementKind + 'static> Type for ListKind<EK> {
-    const KIND: Kind = Kind::List;
-    const ELEMENT_KIND: Option<Kind> = Some(EK::KIND);
-    type ReferencedType = EK::ReferencedType;
-    type GetType<'a> = &'a dyn ListReader<'a, EK>;
-    type SetType<'a> = &'a mut dyn ListAppender<'a, EK>;
-
-    fn encode<E: Encoder>(encoder: &mut E, value: &Self::GetType<'_>) -> Result<(), EncodeError> {
-        // encoder.encode_list(value)
-        todo!()
-    }
-
-    fn decode<'a, D: Decoder<'a>>(decoder: &mut D, set_value: &'a mut Self::SetType<'a>) -> Result<(), DecodeError> {
-        // decoder.decode_list(set_value)
-        todo!()
-    }
-}
+// impl<EK> Private for ListKind<EK> {}
+// impl<EK: ListElementKind + 'static> Type for ListKind<EK> {
+//     const KIND: Kind = Kind::List;
+//     const ELEMENT_KIND: Option<Kind> = Some(EK::KIND);
+//     type ReferencedType = EK::ReferencedType;
+//     type GetType<'a> = &'a dyn ListReader<'a, EK>;
+//     type SetType<'a> = &'a mut dyn ListAppender<'a, EK>;
+//
+//     fn encode<'a: 'b, 'b, E: Encoder>(encoder: &'b mut E, value: &Self::GetType<'a>) -> Result<(), EncodeError> {
+//         encoder.encode_list(value)
+//     }
+//
+//     fn decode<'a: 'b, 'b, D: Decoder<'a>>(decoder: &'b mut D, set_value: &'b mut Self::SetType<'a>) -> Result<(), DecodeError> {
+//         decoder.decode_list(set_value)
+//     }
+// }
 
 pub trait ListElementKind: Type {}
-impl ListElementKind for I32Type {}
-impl ListElementKind for StringType {}
+// impl ListElementKind for I32Type {}
+// impl ListElementKind for StringType {}
 
-pub struct IntN<const N: usize>;
-impl<const N: usize> Private for IntN<N> {}
-impl<const N: usize> Type for IntN<N> {
-    const KIND: Kind = Kind::IntN;
-    const SIZE_LIMIT: Option<usize> = Some(N);
-    type ReferencedType = ();
-    type GetType<'a> = [u8; N];
-    type SetType<'a> = [u8; N];
-
-    fn encode<E: Encoder>(encoder: &mut E, value: &Self::GetType<'_>) -> Result<(), EncodeError> {
-        todo!()
-    }
-
-    fn decode<'a, D: Decoder<'a>>(decoder: &mut D, set_value: &'a mut Self::SetType<'a>) -> Result<(), DecodeError> {
-        todo!()
-    }
-}
+// pub struct IntN<const N: usize>;
+// impl<const N: usize> Private for IntN<N> {}
+// impl<const N: usize> Type for IntN<N> {
+//     const KIND: Kind = Kind::IntN;
+//     const SIZE_LIMIT: Option<usize> = Some(N);
+//     type ReferencedType = ();
+//     type GetType<'a> = [u8; N];
+//     type SetType<'a> = [u8; N];
+//
+//     fn encode<E: Encoder>(encoder: &mut E, value: &Self::GetType<'_>) -> Result<(), EncodeError> {
+//         todo!()
+//     }
+//
+//     fn decode<'a, D: Decoder<'a>>(decoder: &mut D, set_value: &'a mut Self::SetType<'a>) -> Result<(), DecodeError> {
+//         todo!()
+//     }
+// }
 
 pub struct UIntN<const N: u32>;
 
