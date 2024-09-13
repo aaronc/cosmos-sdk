@@ -7,7 +7,7 @@ pub trait Encoder {
     fn encode_i32(&mut self, value: i32) -> Result<(), EncodeError>;
     fn encode_str(&mut self, value: &str) -> Result<(), EncodeError>;
     fn encode_struct<V: StructCodec>(&mut self, value: &V) -> Result<(), EncodeError>;
-    fn encode_list<'a:'b, 'b, EK: ListElementKind>(&mut self, value: &'b dyn ListReader<'a, 'b, EK>) -> Result<(), EncodeError>;
+    fn encode_list<'a, EK: ListElementKind>(&mut self, value: &dyn ListReader<'a, EK>) -> Result<(), EncodeError>;
     // fn encode_enum(&mut self, value: i32) -> Result<(), EncodeError>;
 }
 
@@ -16,6 +16,8 @@ pub enum EncodeError {
 }
 
 pub trait Decoder<'a>
+where
+    Self: 'a,
 {
     fn decode_i32(&mut self) -> Result<i32, DecodeError>;
     fn decode_u32(&mut self) -> Result<u32, DecodeError>;
@@ -30,14 +32,10 @@ pub enum DecodeError {
     InvalidFieldIndex { index: usize },
 }
 
-// pub fn encode_value<'a, E: Encoder, K: Type, V: Value<'a, K>>(encoder: &mut E, value: &'a V) -> Result<(), EncodeError>
-//     where <K as Type>::SetType<'a>: 'a {
-//     // K::encode(encoder, V::to_encode_value(value))
-//     todo!()
-// }
-//
-// pub fn decode_value<'a, 'b, D: Decoder<'a>, K: Type, V: Value<'a, K>>(decoder: &'b mut D, value: &'a mut V) -> Result<(), DecodeError>
-// where <K as Type>::SetType<'a>: 'a {
-//     // V::decode(value, |set_value| Ok(K::decode(decoder, set_value)?))
-//     todo!()
-// }
+pub fn encode_value<'a, 'b, E: Encoder, K: Type, V: Value<'a, K>>(encoder: &'b mut E, value: &'b V) -> Result<(), EncodeError> {
+    K::encode(encoder, value.to_encode_value())
+}
+
+pub fn decode_value<'a:'b, 'b, D: Decoder<'a>, K: Type, V: Value<'a, K>>(decoder: &'b mut D, value: &'b mut V) -> Result<(), DecodeError> {
+    value.decode(decoder)
+}

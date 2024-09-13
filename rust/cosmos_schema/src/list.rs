@@ -45,9 +45,9 @@ where
 }
 
 //
-pub trait ListReader<'a: 'b, 'b, E: ListElementKind>: Iterator<Item=E::GetType<'a, 'b>>
+pub trait ListReader<'a, E: ListElementKind>: Iterator<Item=E::GetType<'a>>
 where
-    E::GetType<'a, 'b>: 'a,
+    E::GetType<'a>: 'a,
 {
     fn size_hint(&self) -> Option<usize>;
 }
