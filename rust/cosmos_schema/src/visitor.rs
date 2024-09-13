@@ -22,7 +22,7 @@ where
     fn decode_i32(&mut self) -> Result<i32, DecodeError>;
     fn decode_u32(&mut self) -> Result<u32, DecodeError>;
     fn decode_str(&mut self) -> Result<&'a str, DecodeError>;
-    fn decode_struct<'b, V: StructCodec + 'a>(&'b mut self, v: &'b mut V) -> Result<(), DecodeError>;
+    fn decode_struct<'b, V: StructCodec + 'a>(&'b mut self, v: &'a mut V) -> Result<(), DecodeError>;
     fn decode_list<'b, EK: ListElementKind>(&'b mut self, v: &'b mut dyn ListAppender<'a, 'b, EK>) -> Result<(), DecodeError>;
     // fn decode_enum(&mut self) -> Result<i32, DecodeError>;
 }

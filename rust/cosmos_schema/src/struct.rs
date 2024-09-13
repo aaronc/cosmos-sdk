@@ -15,6 +15,8 @@ pub unsafe trait StructCodec: ReferenceTypeCodec + Default {
     const FIELDS: &'static [Field<'static>];
     const SEALED: bool;
     // const FIELD_HAS_DEFAULT_MASK: &'static [u8];
+    fn encode_field<E: Encoder>(&self, index: usize, encoder: &mut E) -> Result<(), EncodeError>;
+    fn decode_field<'a, 'b, D: Decoder<'a>>(&'a self, index: usize, decoder: &'b mut D) -> Result<(), DecodeError>;
     // fn field_encoder<'a, V: Encoder>(index: usize) -> Result<StructFieldEncoder<'a, Self, V>, EncodeError>;
     // fn field_decoder<'a, V: Decoder<'a>>(index: usize) -> Result<StructFieldDecoder<'a, Self, V>, DecodeError>;
     // unsafe fn unsafe_init_default() -> Self;
@@ -24,20 +26,18 @@ pub type StructFieldEncoder<'a, S, E> = fn(&'a S, &'a mut E) -> Result<(), Encod
 
 pub type StructFieldDecoder<'a, S, D> = fn(&'a mut S, &'a mut D) -> Result<(), DecodeError>;
 
-// impl<S: StructCodec> Value<StructKind<S>> for S
-// where
-//         for<'a> S: 'a,
-// {
-//     // fn to_encode_value(&'a self) -> <StructKind<S> as Type>::GetType<'a> {
-//     //     // self
-//     //     todo!()
-//     // }
-//     //
-//     // fn decode<D: Decoder<'a>>(&'a mut self, decoder: &mut D) -> Result<(), DecodeError> {
-//     //     // decoder.decode_struct(self)
-//     //     todo!()
-//     // }
-// }
+impl<'a, S: StructCodec> Value<'a, StructKind<S>> for S
+where
+        for<'b> S: 'b,
+{
+    fn to_encode_value<'b>(&'b self) -> <StructKind<S> as Type>::GetType<'b> {
+        self
+    }
+
+    fn decode<'b, D: Decoder<'a>>(&'b mut self, decoder: &mut D) -> Result<(), DecodeError> {
+        decoder.decode_struct(self)
+    }
+}
 
 // impl<V> Value for V
 // where
