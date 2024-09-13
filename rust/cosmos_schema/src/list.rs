@@ -48,6 +48,6 @@ pub trait ListAppender<'a, E: ListElementKind> {
     fn append(&'a mut self) -> &mut E::SetType<'a>;
 }
 
-pub trait ListReader<'a, E: ListElementKind>: Iterator<Item = E::ReferencedType> {
+pub trait ListReader<'a, E: ListElementKind>: Iterator<Item = E::GetType<'a>> {
     fn size_hint(&self) -> Option<usize>;
 }

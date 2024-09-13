@@ -47,33 +47,33 @@ impl<'a> ReferenceTypeCodec for EnumValueDefinition<'a> {
     const NAME: &'static str = "EnumValueDefinition";
 }
 
-unsafe impl<'a> StructCodec<'a> for EnumValueDefinition<'a> {
+unsafe impl <'a> StructCodec for EnumValueDefinition<'a> {
     const FIELDS: &'static [Field<'static>] = &[
         Field::new("name", to_field_type::<StringType>()),
         Field::new("value", to_field_type::<I32Type>()),
     ];
     const SEALED: bool = true;
-    const FIELD_HAS_DEFAULT_MASK: &'static [u8] = &[];
+    // const FIELD_HAS_DEFAULT_MASK: &'static [u8] = &[];
 
-    fn field_encoder<V: Encoder>(index: usize) -> Result<StructFieldEncoder<'a, Self, V>, EncodeError> {
-        Ok(match index {
-            0 => |value, encoder| encode_value(encoder, &value.name),
-            1 => |value, encoder| encode_value(encoder, &value.value),
-            _ => return Err(EncodeError::InvalidFieldIndex { index }),
-        })
-    }
+    // fn field_encoder<'b, V: Encoder>(index: usize) -> Result<StructFieldEncoder<'b, Self, V>, EncodeError> {
+    //     Ok(match index {
+    //         0 => |value, encoder| encode_value(encoder, &value.name),
+    //         1 => |value, encoder| encode_value(encoder, &value.value),
+    //         _ => return Err(EncodeError::InvalidFieldIndex { index }),
+    //     })
+    // }
+    //
+    // fn field_decoder<'b, V: Decoder<'b>>(index: usize) -> Result<StructFieldDecoder<'b, Self, V>, DecodeError> {
+    //     Ok(match index {
+    //         0 => |value, decoder| decode_value(decoder, &mut value.name),
+    //         1 => |value, decoder| decode_value(decoder, &mut value.value),
+    //         _ => return Err(DecodeError::InvalidFieldIndex { index }),
+    //     })
+    // }
 
-    fn field_decoder<V: Decoder<'a>>(index: usize) -> Result<StructFieldDecoder<'a, Self, V>, DecodeError> {
-        Ok(match index {
-            0 => |value, decoder| decode_value(decoder, &mut value.name),
-            1 => |value, decoder| decode_value(decoder, &mut value.value),
-            _ => return Err(DecodeError::InvalidFieldIndex { index }),
-        })
-    }
-
-    unsafe fn unsafe_init_default() -> Self {
-        Default::default()
-    }
+    // unsafe fn unsafe_init_default() -> Self {
+    //     Default::default()
+    // }
 
 
     // fn get_field(value: Self::Borrowed, index: usize) -> Result<DynamicValue, ()> {

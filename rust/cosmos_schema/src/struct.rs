@@ -1,5 +1,5 @@
 use crate::field::Field;
-use crate::kind::{ReferenceTypeCodec, StructKind};
+use crate::kind::{ReferenceTypeCodec, StructKind, Type};
 use crate::value::Value;
 use crate::visitor::{DecodeError, Decoder, EncodeError, Encoder};
 
@@ -10,30 +10,30 @@ pub struct StructType<'a> {
     pub sealed: bool,
 }
 
-pub unsafe trait StructCodec<'a>: ReferenceTypeCodec {
+pub unsafe trait StructCodec: ReferenceTypeCodec + Default {
     // const NUM_FIELDS: usize;
     const FIELDS: &'static [Field<'static>];
     const SEALED: bool;
-    const FIELD_HAS_DEFAULT_MASK: &'static [u8];
-    fn field_encoder<V: Encoder>(index: usize) -> Result<StructFieldEncoder<'a, Self, V>, EncodeError>;
-    fn field_decoder<V: Decoder<'a>>(index: usize) -> Result<StructFieldDecoder<'a, Self, V>, DecodeError>;
-    unsafe fn unsafe_init_default() -> Self;
+    // const FIELD_HAS_DEFAULT_MASK: &'static [u8];
+    // fn field_encoder<'a, V: Encoder>(index: usize) -> Result<StructFieldEncoder<'a, Self, V>, EncodeError>;
+    // fn field_decoder<'a, V: Decoder<'a>>(index: usize) -> Result<StructFieldDecoder<'a, Self, V>, DecodeError>;
+    // unsafe fn unsafe_init_default() -> Self;
 }
 
-pub type StructFieldEncoder<'a, S, E> = fn(&S, &mut E) -> Result<(), EncodeError>;
+pub type StructFieldEncoder<'a, S, E> = fn(&'a S, &'a mut E) -> Result<(), EncodeError>;
 
-pub type StructFieldDecoder<'a, S, D> = fn(&mut S, &mut D) -> Result<(), DecodeError>;
+pub type StructFieldDecoder<'a, S, D> = fn(&'a mut S, &'a mut D) -> Result<(), DecodeError>;
 
-impl<'a, S> Value<'a, StructKind<S>> for S
-where
-        for<'b> S: StructCodec<'b> + 'b,
+impl<'a, S: StructCodec + 'a> Value<'a, StructKind<S>> for S
 {
-    fn to_encode_value(&'a self) -> &StructKind<S>::GetType<'a> {
-        self
+    fn to_encode_value(&'a self) -> <StructKind<S> as Type>::GetType<'a> {
+        // self
+        todo!()
     }
 
-    fn decode<'a, D: Decoder<'a>>(&'a mut self, decoder: &mut D) -> Result<(), DecodeError> {
-        decoder.decode_struct(self)
+    fn decode<D: Decoder<'a>>(&'a mut self, decoder: &mut D) -> Result<(), DecodeError> {
+        // decoder.decode_struct(self)
+        todo!()
     }
 }
 

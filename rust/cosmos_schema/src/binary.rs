@@ -39,12 +39,13 @@ impl<'a> Decoder<'a> for BinaryDecoder<'a> {
         todo!()
     }
 
-    fn decode_struct<'b, V: StructCodec<'a>>(&mut self, v: &'b mut V) -> Result<(), DecodeError> {
-        for (i, elem) in V::FIELDS.iter().enumerate() {
-            let decoder = V::field_decoder(i)?;
-            decoder(v, self)?;
-        }
-        Ok(())
+    fn decode_struct<'b, V: StructCodec>(&mut self, v: &'b mut V) -> Result<(), DecodeError> {
+        // for (i, elem) in V::FIELDS.iter().enumerate() {
+        //     let decoder = V::field_decoder(i)?;
+        //     decoder(v, self)?;
+        // }
+        // Ok(())
+        todo!()
     }
 
     fn decode_list<EK: ListElementKind>(&mut self, v: &'a mut dyn ListAppender<EK>) -> Result<(), DecodeError> {

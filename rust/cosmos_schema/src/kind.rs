@@ -1,6 +1,6 @@
 use num_enum::{FromPrimitive, IntoPrimitive};
 use crate::enum_type::{EnumCodec, EnumKind, EnumType, EnumValueDefinition};
-use crate::list::{ListAppender, ListCodec};
+use crate::list::{ListAppender, ListCodec, ListReader};
 use crate::r#struct::{StructCodec, StructType};
 use crate::value::Value;
 use crate::visitor::{DecodeError, Decoder, EncodeError, Encoder};
@@ -106,9 +106,7 @@ impl Type for StringType {
 }
 
 impl<S> Private for StructKind<S> {}
-impl<S> Type for StructKind<S>
-where
-        for<'a> S: StructCodec<'a> + 'a,
+impl<S: StructCodec> Type for StructKind<S>
 {
     const KIND: Kind = Kind::Struct;
     type ReferencedType = S;
@@ -163,15 +161,17 @@ impl<EK: ListElementKind + 'static> Type for ListKind<EK> {
     const KIND: Kind = Kind::List;
     const ELEMENT_KIND: Option<Kind> = Some(EK::KIND);
     type ReferencedType = EK::ReferencedType;
-    type GetType<'a> = &'a dyn Iterator<Item = EK::ReferencedType>;
+    type GetType<'a> = &'a dyn ListReader<'a, EK>;
     type SetType<'a> = &'a mut dyn ListAppender<'a, EK>;
 
     fn encode<E: Encoder>(encoder: &mut E, value: &Self::GetType<'_>) -> Result<(), EncodeError> {
-        encoder.encode_list(value)
+        // encoder.encode_list(value)
+        todo!()
     }
 
     fn decode<'a, D: Decoder<'a>>(decoder: &mut D, set_value: &'a mut Self::SetType<'a>) -> Result<(), DecodeError> {
-        decoder.decode_list(set_value)
+        // decoder.decode_list(set_value)
+        todo!()
     }
 }
 
