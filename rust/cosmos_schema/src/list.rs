@@ -37,10 +37,17 @@ use crate::visitor::DecodeError;
 //     }
 // }
 
-// pub trait ListAppender<'a, E: ListElementKind> {
-//     fn append(&'a mut self) -> &mut E::SetType<'a>;
-// }
+pub trait ListAppender<'a: 'b, 'b, E: ListElementKind>
+where
+    E::SetType<'a, 'b>: 'a,
+{
+    fn append(&'b mut self) -> &mut E::SetType<'a, 'b>;
+}
+
 //
-// pub trait ListReader<'a, E: ListElementKind>: Iterator<Item = E::GetType<'a>> {
-//     fn size_hint(&self) -> Option<usize>;
-// }
+pub trait ListReader<'a: 'b, 'b, E: ListElementKind>: Iterator<Item=E::GetType<'a, 'b>>
+where
+    E::GetType<'a, 'b>: 'a,
+{
+    fn size_hint(&self) -> Option<usize>;
+}

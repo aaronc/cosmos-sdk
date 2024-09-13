@@ -1,4 +1,5 @@
 use crate::kind::{ListElementKind, Type};
+use crate::list::{ListAppender, ListReader};
 use crate::r#struct::StructCodec;
 use crate::value::Value;
 
@@ -6,7 +7,7 @@ pub trait Encoder {
     fn encode_i32(&mut self, value: i32) -> Result<(), EncodeError>;
     fn encode_str(&mut self, value: &str) -> Result<(), EncodeError>;
     fn encode_struct<V: StructCodec>(&mut self, value: &V) -> Result<(), EncodeError>;
-    // fn encode_list<'a, EK: ListElementKind>(&mut self, value: &'a dyn ListReader<'a, EK>) -> Result<(), EncodeError>;
+    fn encode_list<'a:'b, 'b, EK: ListElementKind>(&mut self, value: &'b dyn ListReader<'a, 'b, EK>) -> Result<(), EncodeError>;
     // fn encode_enum(&mut self, value: i32) -> Result<(), EncodeError>;
 }
 
@@ -20,7 +21,7 @@ pub trait Decoder<'a>
     fn decode_u32(&mut self) -> Result<u32, DecodeError>;
     fn decode_str(&mut self) -> Result<&'a str, DecodeError>;
     fn decode_struct<'b, V: StructCodec + 'a>(&'b mut self, v: &'b mut V) -> Result<(), DecodeError>;
-    // fn decode_list<EK: ListElementKind>(&mut self, v: &'a mut dyn ListAppender<EK>) -> Result<(), DecodeError>;
+    fn decode_list<'b, EK: ListElementKind>(&'b mut self, v: &'b mut dyn ListAppender<'a, 'b, EK>) -> Result<(), DecodeError>;
     // fn decode_enum(&mut self) -> Result<i32, DecodeError>;
 }
 

@@ -1,5 +1,6 @@
 use num_enum::{FromPrimitive, IntoPrimitive};
 use crate::enum_type::{EnumCodec, EnumKind, EnumType, EnumValueDefinition};
+use crate::list::{ListAppender, ListReader};
 use crate::r#struct::{StructCodec, StructType};
 use crate::value::Value;
 use crate::visitor::{DecodeError, Decoder, EncodeError, Encoder};
@@ -55,7 +56,6 @@ pub struct StructKind<S> {
     // _phantom_lifetime: std::marker::PhantomData<&'a ()>,
 }
 
-// TODO: rename this to something else, maybe simply Type because it's everything in field except Name basically
 pub trait Type: Private {
     const KIND: Kind;
     const NULLABLE: bool = false;
@@ -90,6 +90,24 @@ where
         decoder.decode_struct(set_value)
     }
 }
+
+impl<EK> Private for ListKind<EK> {}
+impl<EK: ListElementKind + 'static> Type for ListKind<EK> {
+    const KIND: Kind = Kind::List;
+    const ELEMENT_KIND: Option<Kind> = Some(EK::KIND);
+    type ReferencedType = EK::ReferencedType;
+    type GetType<'a: 'b, 'b> = &'b dyn ListReader<'a, 'b, EK>;
+    type SetType<'a: 'b, 'b> = &'b mut dyn ListAppender<'a, 'b, EK>;
+
+    fn encode<'a: 'b, 'b, E: Encoder>(encoder: &'b mut E, value: Self::GetType<'a, 'b>) -> Result<(), EncodeError> {
+        encoder.encode_list(value)
+    }
+
+    fn decode<'a: 'b, 'b, D: Decoder<'a> + 'a>(decoder: &'b mut D, set_value: Self::SetType<'a, 'b>) -> Result<(), DecodeError> {
+        decoder.decode_list(set_value)
+    }
+}
+
 
 
 // impl Private for I32Type {}
@@ -159,23 +177,6 @@ trait Private {}
 pub struct ListKind<EK> {
     _phantom2: std::marker::PhantomData<EK>,
 }
-
-// impl<EK> Private for ListKind<EK> {}
-// impl<EK: ListElementKind + 'static> Type for ListKind<EK> {
-//     const KIND: Kind = Kind::List;
-//     const ELEMENT_KIND: Option<Kind> = Some(EK::KIND);
-//     type ReferencedType = EK::ReferencedType;
-//     type GetType<'a> = &'a dyn ListReader<'a, EK>;
-//     type SetType<'a> = &'a mut dyn ListAppender<'a, EK>;
-//
-//     fn encode<'a: 'b, 'b, E: Encoder>(encoder: &'b mut E, value: &Self::GetType<'a>) -> Result<(), EncodeError> {
-//         encoder.encode_list(value)
-//     }
-//
-//     fn decode<'a: 'b, 'b, D: Decoder<'a>>(decoder: &'b mut D, set_value: &'b mut Self::SetType<'a>) -> Result<(), DecodeError> {
-//         decoder.decode_list(set_value)
-//     }
-// }
 
 pub trait ListElementKind: Type {}
 // impl ListElementKind for I32Type {}
