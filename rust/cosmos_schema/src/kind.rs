@@ -103,7 +103,7 @@ impl<EK: ListElementKind + 'static> Type for ListKind<EK> {
         encoder.encode_list(value)
     }
 
-    fn decode<'a: 'b, 'b, D: Decoder<'a> + 'a>(decoder: &'b mut D, set_value: Self::SetType<'a, 'b>) -> Result<(), DecodeError> {
+    fn decode<'a: 'b, 'b, D: Decoder<'a>>(decoder: &'b mut D, set_value: Self::SetType<'a, 'b>) -> Result<(), DecodeError> {
         decoder.decode_list(set_value)
     }
 }
@@ -120,7 +120,7 @@ impl Type for I32Type {
         encoder.encode_i32(*value)
     }
 
-    fn decode<'a: 'b, 'b, D: Decoder<'a> + 'a>(decoder: &'b mut D, set_value: Self::SetType<'a, 'b>) -> Result<(), DecodeError> {
+    fn decode<'a: 'b, 'b, D: Decoder<'a>>(decoder: &'b mut D, set_value: Self::SetType<'a, 'b>) -> Result<(), DecodeError> {
         *set_value = decoder.decode_i32()?;
         Ok(())
     }
@@ -137,7 +137,7 @@ impl Type for StringType {
         encoder.encode_str(value)
     }
 
-    fn decode<'a: 'b, 'b, D: Decoder<'a> + 'a>(decoder: &'b mut D, set_value: Self::SetType<'a, 'b>) -> Result<(), DecodeError> {
+    fn decode<'a: 'b, 'b, D: Decoder<'a>>(decoder: &'b mut D, set_value: Self::SetType<'a, 'b>) -> Result<(), DecodeError> {
         *set_value = decoder.decode_str()?;
         Ok(())
     }

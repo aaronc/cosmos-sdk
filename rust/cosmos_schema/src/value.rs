@@ -1,4 +1,4 @@
-use crate::kind::{I32Type, Kind, NullableType, StringType, Type};
+use crate::kind::{I32Type, Kind, NullableType, StringType, StructKind, Type};
 use crate::visitor::{Decoder, DecodeError, Encoder, EncodeError};
 
 pub trait Value<'a, K: Type>
@@ -8,9 +8,12 @@ where
     fn to_encode_value<'b>(&'b self) -> K::GetType<'b>;
     fn decode<'b, D: Decoder<'a>>(&'b mut self, decoder: &mut D) -> Result<(), DecodeError>;
     // TODO: ideally values don't need to interact directly with the decoder and we can use some sort of closure, but I couldn't get it to work yet:
-    // fn decode<'b, F: FnOnce(K::SetType<'a, 'b>) -> Result<(), DecodeError>>(&'b mut self, f: F) -> Result<(), DecodeError>
+    // fn decode2<F>(&'a mut self, f: F) -> Result<(), DecodeError>
     // where
-    //     F: 'b;
+    //     F: FnOnce(K::SetType<'a, '_>) -> Result<(), DecodeError>
+    // {
+    //     todo!()
+    // }
 }
 
 // impl Value<I32Type> for i32 {
@@ -54,6 +57,16 @@ impl<'a> Value<'a, StringType> for String {
         *self = decoder.decode_str()?.to_owned();
         Ok(())
     }
+
+    // fn decode2<F>(&'a mut self, f: F) -> Result<(), DecodeError>
+    // where
+    //     F: FnOnce(<StringType as Type>::SetType<'a, '_>) -> Result<(), DecodeError>,
+    // {
+    //     let mut s = "";
+    //     f(&mut s)?;
+    //     *self = s.to_owned();
+    //     Ok(())
+    // }
 
     // fn decode<'b, F: FnOnce(<StringType as Type>::SetType<'a, 'b>) -> Result<(), DecodeError>>(&'b mut self, f: F) -> Result<(), DecodeError> {
     //     let mut s = "";
